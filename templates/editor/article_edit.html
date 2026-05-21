@@ -1,0 +1,22 @@
+﻿{% extends 'editor/base_admin.html' %}
+
+{% block page_title %}Edit Article: {{ article.title }}{% endblock %}
+
+{% block content %}
+<div class="card" style="background: white; padding: 2rem; border-radius: 10px;">
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <small style="color: red;">{{ field.errors|striptags }}</small>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{% url 'editor_articles' %}" class="btn">Cancel</a>
+    </form>
+</div>
+{% endblock %}

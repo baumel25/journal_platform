@@ -1,0 +1,76 @@
+﻿{% extends 'editor/base_admin.html' %}
+
+{% block page_title %}Pending Approvals{% endblock %}
+
+{% block content %}
+<h3> Submitted Articles (Waiting for Reviewer Assignment)</h3>
+<div class="data-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Submitted Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in pending_articles %}
+            <tr>
+                <td>{{ article.title }}</td>
+                <td>{{ article.author.username }}</td>
+                <td>{{ article.submitted_date|date:"M d, Y" }}</td>
+                <td><span class="status-badge status-{{ article.status }}">{{ article.get_status_display }}</span></td>
+                <td>
+                    <a href="{% url 'article_detail' article.pk %}" class="action-btn btn-view">View</a>
+                    <a href="{% url 'assign_reviewer' article.pk %}" class="action-btn btn-edit">Assign Reviewer</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center;">No pending articles for review</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h3 style="margin-top: 2rem;"> Articles Under Review (Reviews in Progress)</h3>
+<div class="data-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Reviewer</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in under_review_articles %}
+            <tr>
+                <td>{{ article.title }}</td>
+                <td>{{ article.author.username }}</td>
+                <td>
+                    {% for review in article.reviews.all %}
+                        {{ review.reviewer.username }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td><span class="status-badge status-{{ article.status }}">{{ article.get_status_display }}</span></td>
+                <td>
+                    <a href="{% url 'article_detail' article.pk %}" class="action-btn btn-view">View Reviews</a>
+                    <a href="{% url 'approve_article' article.pk %}" class="action-btn btn-edit">Approve</a>
+                    <a href="{% url 'reject_article' article.pk %}" class="action-btn btn-delete">Reject</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center;">No articles under review</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

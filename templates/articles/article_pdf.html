@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ article.title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #4f46e5;
+        }
+        
+        .header h1 {
+            color: #4f46e5;
+            font-size: 24px;
+        }
+        
+        .article-title {
+            font-size: 20px;
+            margin: 1rem 0;
+            color: #1e293b;
+        }
+        
+        .meta-box {
+            background: #f8fafc;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 5px;
+        }
+        
+        .meta-item {
+            margin-bottom: 0.5rem;
+        }
+        
+        .meta-label {
+            font-weight: bold;
+            color: #4a5568;
+        }
+        
+        h2 {
+            color: #2d3748;
+            margin: 1.5rem 0 1rem 0;
+            border-left: 3px solid #4f46e5;
+            padding-left: 1rem;
+        }
+        
+        .abstract {
+            background: #f8fafc;
+            padding: 1rem;
+            border-left: 3px solid #4f46e5;
+            margin: 1rem 0;
+            font-style: italic;
+        }
+        
+        .content {
+            margin: 2rem 0;
+        }
+        
+        .keywords {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #718096;
+        }
+        
+        .footer {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 10px;
+            color: #a0aec0;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .status-published { background: #c6f6d5; color: #22543d; }
+        .status-approved { background: #c6f6d5; color: #22543d; }
+        .status-submitted { background: #fefcbf; color: #975a16; }
+        .status-under_review { background: #bee3f8; color: #2c5282; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Journal Platform</h1>
+        <p>Academic Journal Management System</p>
+    </div>
+    
+    <div class="article-title">
+        <strong>{{ article.title }}</strong>
+    </div>
+    
+    <div class="meta-box">
+        <div class="meta-item"><span class="meta-label">Author:</span> {{ article.author.username }}</div>
+        <div class="meta-item"><span class="meta-label">Status:</span> {{ article.get_status_display }}</div>
+        <div class="meta-item"><span class="meta-label">Submitted:</span> {{ article.submitted_date|date:"F d, Y"|default:"Not submitted" }}</div>
+        {% if article.published_date %}
+        <div class="meta-item"><span class="meta-label">Published:</span> {{ article.published_date|date:"F d, Y" }}</div>
+        {% endif %}
+    </div>
+    
+    <h2>Abstract</h2>
+    <div class="abstract">
+        {{ article.abstract|linebreaks }}
+    </div>
+    
+    <h2>Content</h2>
+    <div class="content">
+        {{ article.content|linebreaks }}
+    </div>
+    
+    {% if article.keywords %}
+    <div class="keywords">
+        <strong>Keywords:</strong> {{ article.keywords }}
+    </div>
+    {% endif %}
+    
+    <div class="footer">
+        <p>Generated on {{ date|date:"F d, Y H:i" }}</p>
+        <p>Journal Platform - Academic Publishing Platform</p>
+    </div>
+</body>
+</html>

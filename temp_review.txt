@@ -1,0 +1,49 @@
+﻿
+@login_required
+@user_passes_test(lambda u: u.is_reviewer())
+def submit_review(request, pk):
+    """Submit a review for an article"""
+    article = get_object_or_404(Article, pk=pk)
+    
+    # Check if review already exists
+    existing_review = Review.objects.filter(article=article, reviewer=request.user).first()
+    
+    if existing_review and existing_review.comments_to_author:
+        messages.error(request, 'You have already submitted a review for this article.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            if existing_review:
+                # Update existing review
+                review = existing_review
+                review.originality_score = form.cleaned_data['originality_score']
+                review.significance_score = form.cleaned_data['significance_score']
+                review.methodology_score = form.cleaned_data['methodology_score']
+                review.clarity_score = form.cleaned_data['clarity_score']
+                review.comments_to_author = form.cleaned_data['comments_to_author']
+                review.comments_to_editor = form.cleaned_data['comments_to_editor']
+                review.recommendation = form.cleaned_data['recommendation']
+                review.save()
+            else:
+                # Create new review
+                review = form.save(commit=False)
+                review.article = article
+                review.reviewer = request.user
+                review.save()
+            
+            messages.success(request, 'Your review has been submitted successfully!')
+            return redirect('dashboard')
+    else:
+        if existing_review:
+            form = ReviewForm(instance=existing_review)
+        else:
+            form = ReviewForm()
+    
+    context = {
+        'form': form,
+        'article': article,
+        'existing_review': existing_review,
+    }
+    return render(request, 'articles/submit_review.html', context)

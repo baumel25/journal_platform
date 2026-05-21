@@ -1,0 +1,25 @@
+﻿{% extends 'editor/base_admin.html' %}
+
+{% block page_title %}Supprimer un utilisateur{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 0 auto; text-align: center;">
+    <h2>Supprimer l'utilisateur</h2>
+    
+    <div style="margin: 2rem 0; padding: 1rem; background: #fee; border-radius: 10px;">
+        <p style="color: red; font-size: 3rem;"></p>
+        <p>Voulez-vous vraiment supprimer <strong>{{ target_user.username }}</strong> ?</p>
+        <p><strong>Email:</strong> {{ target_user.email|default:"-" }}</p>
+        <p><strong>Rôle:</strong> {{ target_user.get_role_display }}</p>
+        <p style="color: red; margin-top: 1rem;">Cette action est irréversible !</p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+            <a href="{% url 'editor_users' %}" class="btn">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

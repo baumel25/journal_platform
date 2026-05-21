@@ -1,0 +1,139 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="welcome">Journal Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="logo">
+                 Journal Platform
+            </a>
+            <div class="nav-links">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" data-translate="nav_dashboard">
+                         Dashboard
+                    </a>
+                    {% if user.role == 'author' %}
+                        <a href="{% url 'create_article' %}" data-translate="nav_new_article">
+                             Nouvel article
+                        </a>
+                        <a href="{% url 'my_articles' %}" data-translate="nav_my_articles">
+                             Mes articles
+                        </a>
+                    {% endif %}
+                    {% if user.role == 'reviewer' %}
+                        <a href="{% url 'pending_reviews' %}" data-translate="nav_pending_reviews">
+                             Relectures
+                        </a>
+                    {% endif %}
+                    {% if user.role == 'editor' %}
+                        <a href="{% url 'editor_dashboard' %}" data-translate="nav_admin_panel">
+                             Panel admin
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'profile' %}" data-translate="nav_profile">
+                         Profil
+                    </a>
+                    <div class="user-info">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                            <div class="user-avatar">
+                                {{ user.username|first|upper }}
+                            </div>
+                        {% endif %}
+                        <div>
+                            <strong>{{ user.username }}</strong>
+                            <br>
+                            <small style="font-size: 0.75rem;" data-translate="role_{{ user.role }}">{{ user.get_role_display }}</small>
+                        </div>
+                    </div>
+                    <a href="{% url 'logout' %}" class="btn btn-danger" style="padding: 0.5rem 1rem;" data-translate="nav_logout">
+                         Déconnexion
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" data-translate="nav_login">
+                         Connexion
+                    </a>
+                    <a href="{% url 'register' %}" data-translate="nav_register">
+                         Inscription
+                    </a>
+                {% endif %}
+                
+                <!-- Contrôles de langue et thème -->
+                <div class="control-group">
+                    <div class="lang-selector">
+                        <button id="lang-fr" class="lang-btn active" onclick="setLanguage('fr')">FR</button>
+                        <button id="lang-en" class="lang-btn" onclick="setLanguage('en')">EN</button>
+                    </div>
+                    <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3> Journal Platform</h3>
+                <p data-translate="footer_platform">Plateforme de gestion de journal académique avec système d'évaluation par les pairs.</p>
+            </div>
+            <div class="footer-section">
+                <h3 data-translate="footer_quick_links">Liens rapides</h3>
+                <ul>
+                    <li><a href="/" data-translate="nav_home">Accueil</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'dashboard' %}" data-translate="nav_dashboard">Tableau de bord</a></li>
+                        <li><a href="{% url 'profile' %}" data-translate="nav_profile">Mon profil</a></li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}" data-translate="nav_login">Connexion</a></li>
+                        <li><a href="{% url 'register' %}" data-translate="nav_register">Inscription</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3 data-translate="footer_roles">Rôles</h3>
+                <ul>
+                    <li data-translate="role_author"> Auteurs</li>
+                    <li data-translate="role_reviewer"> Relecteurs</li>
+                    <li data-translate="role_editor"> Éditeurs</li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3 data-translate="footer_contact">Contact</h3>
+                <ul>
+                    <li> support@journalplatform.com</li>
+                    <li> <span data-translate="footer_report">Signaler un problème</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; {% now "Y" %} Journal Platform. <span data-translate="footer_copyright">Tous droits réservés.</span></p>
+        </div>
+    </footer>
+    
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

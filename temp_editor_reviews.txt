@@ -1,0 +1,10 @@
+﻿@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_reviews(request):
+    """View all reviews"""
+    reviews = Review.objects.all().order_by('-submitted_date')
+    context = {
+        'active': 'reviews',
+        'reviews': reviews,
+    }
+    return render(request, 'editor/reviews.html', context)

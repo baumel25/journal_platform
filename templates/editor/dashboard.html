@@ -1,0 +1,92 @@
+﻿{% extends 'editor/base_admin.html' %}
+
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Articles</h3>
+        <div class="stat-number">{{ total_articles }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Published</h3>
+        <div class="stat-number">{{ published_articles }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Pending Review</h3>
+        <div class="stat-number">{{ pending_articles }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Under Review</h3>
+        <div class="stat-number">{{ under_review }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Users</h3>
+        <div class="stat-number">{{ total_users }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Reviews</h3>
+        <div class="stat-number">{{ total_reviews }}</div>
+    </div>
+</div>
+
+<div class="data-table">
+    <h3 style="padding: 1rem; margin: 0;">Recent Articles</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Status</th>
+                <th>Submitted Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in recent_articles %}
+            <tr>
+                <td>{{ article.title|truncatechars:50 }}</td>
+                <td>{{ article.author.username }}</td>
+                <td><span class="status-badge status-{{ article.status }}">{{ article.get_status_display }}</span></td>
+                <td>{{ article.submitted_date|date:"M d, Y"|default:"Not submitted" }}</td>
+                <td>
+                    <a href="{% url 'article_detail' article.pk %}" class="action-btn btn-view">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if recent_reviews %}
+<div class="data-table" style="margin-top: 2rem;">
+    <h3 style="padding: 1rem; margin: 0;">Recent Reviews Submitted</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Reviewer</th>
+                <th>Recommendation</th>
+                <th>Average Score</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in recent_reviews %}
+            <tr>
+                <td>{{ review.article.title|truncatechars:50 }}</td>
+                <td>{{ review.reviewer.username }}</td>
+                <td>{{ review.get_recommendation_display }}</td>
+                <td>{{ review.get_average_score|floatformat:1 }}/5</td>
+                <td>{{ review.submitted_date|date:"M d, Y H:i" }}</td>
+                <td>
+                    <a href="{% url 'article_detail' review.article.pk %}" class="action-btn btn-view">View Review</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

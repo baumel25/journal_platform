@@ -1,0 +1,11 @@
+﻿@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_pending(request):
+    """View pending articles for approval"""
+    # Show articles that are submitted or have reviews completed
+    pending_articles = Article.objects.filter(status__in=['submitted', 'under_review'])
+    context = {
+        'active': 'pending',
+        'articles': pending_articles,
+    }
+    return render(request, 'editor/pending.html', context)

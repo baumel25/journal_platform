@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Pending Reviews</h2>
+    
+    <div class="grid">
+        {% for review in reviews %}
+            <div class="article-card">
+                <h4>{{ review.article.title }}</h4>
+                <p>Author: {{ review.article.author.username }}</p>
+                <p>Submitted: {{ review.article.submitted_date|date:"M d, Y" }}</p>
+                <a href="{% url 'submit_review' review.article.pk %}" class="btn btn-primary">Submit Review</a>
+            </div>
+        {% empty %}
+            <p>No pending reviews at the moment.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

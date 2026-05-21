@@ -1,0 +1,176 @@
+﻿{% extends 'editor/base_admin.html' %}
+
+{% block page_title %}Gestion des Utilisateurs{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .stat-box {
+        background: white;
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+    .stat-label {
+        color: #64748b;
+        margin-top: 0.5rem;
+    }
+    .role-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 5px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .role-author { background: #10b981; color: white; }
+    .role-reviewer { background: #f59e0b; color: white; }
+    .role-editor { background: #8b5cf6; color: white; }
+    .status-active { color: #10b981; font-weight: bold; }
+    .status-inactive { color: #ef4444; font-weight: bold; }
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .search-box {
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        width: 300px;
+        border: 1px solid #e2e8f0;
+        border-radius: 5px;
+    }
+    .user-avatar-small {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>👥 Gestion des Utilisateurs</h2>
+
+<div class="stats-summary">
+    <div class="stat-box">
+        <div class="stat-number">{{ total_users }}</div>
+        <div class="stat-label">Total Utilisateurs</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-number">{{ authors_count }}</div>
+        <div class="stat-label">Auteurs</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-number">{{ reviewers_count }}</div>
+        <div class="stat-label">Relecteurs</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-number">{{ editors_count }}</div>
+        <div class="stat-label">Éditeurs</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-number">{{ active_count }}</div>
+        <div class="stat-label">Comptes Actifs</div>
+    </div>
+</div>
+
+<div>
+    <input type="text" id="searchInput" placeholder="🔍 Rechercher un utilisateur (nom, email, rôle)..." class="search-box" onkeyup="filterUsers()">
+</div>
+
+<div class="data-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Avatar</th>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Statut</th>
+                <th>Articles</th>
+                <th>Relectures</th>
+                <th>Inscrit le</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody">
+            {% for u in users %}
+            <tr class="user-row" data-username="{{ u.username|lower }}" data-email="{{ u.email|lower }}" data-role="{{ u.role }}">
+                <td>
+                    {% if u.profile_picture %}
+                        <img src="{{ u.profile_picture.url }}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                        <div class="user-avatar-small">{{ u.username|first|upper }}</div>
+                    {% endif %}
+                </td>
+                <td><strong>{{ u.username }}</strong></td>
+                <td>{{ u.email|default:"-" }}</td>
+                <td>
+                    <span class="role-badge role-{{ u.role }}">
+                        {{ u.get_role_display }}
+                    </span>
+                </td>
+                <td>
+                    {% if u.is_active %}
+                        <span class="status-active">✓ Actif</span>
+                    {% else %}
+                        <span class="status-inactive">✗ Inactif</span>
+                    {% endif %}
+                </td>
+                <td>{{ u.articles.count }}</td>
+                <td>{{ u.reviews.count }}</td>
+                <td>{{ u.date_joined|date:"d/m/Y" }}</td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="{% url 'editor_user_detail' u.id %}" class="action-btn btn-view">Voir</a>
+                        <a href="{% url 'editor_user_edit' u.id %}" class="action-btn btn-edit">Modifier</a>
+                        <a href="{% url 'editor_user_change_role' u.id %}" class="action-btn btn-edit">Changer Rôle</a>
+                        <a href="{% url 'editor_user_toggle_status' u.id %}" class="action-btn {% if u.is_active %}btn-warning{% else %}btn-success{% endif %}" onclick="return confirm('Confirmer le changement de statut?')">
+                            {% if u.is_active %}Désactiver{% else %}Activer{% endif %}
+                        </a>
+                        {% if u.id != request.user.id and not u.is_editor %}
+                        <a href="{% url 'editor_user_delete' u.id %}" class="action-btn btn-delete" onclick="return confirm('Supprimer définitivement cet utilisateur?')">Supprimer</a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function filterUsers() {
+    let input = document.getElementById('searchInput');
+    let filter = input.value.toLowerCase();
+    let rows = document.getElementsByClassName('user-row');
+    
+    for (let i = 0; i < rows.length; i++) {
+        let username = rows[i].getAttribute('data-username');
+        let email = rows[i].getAttribute('data-email');
+        let role = rows[i].getAttribute('data-role');
+        
+        if (username.includes(filter) || email.includes(filter) || role.includes(filter)) {
+            rows[i].style.display = '';
+        } else {
+            rows[i].style.display = 'none';
+        }
+    }
+}
+</script>
+{% endblock %}

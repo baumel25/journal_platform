@@ -1,0 +1,107 @@
+﻿# Add these new editor views to your existing articles/views.py
+
+from django.db.models import Count, Q
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_dashboard(request):
+    """Editor Admin Dashboard"""
+    articles = Article.objects.all()
+    
+    context = {
+        'active': 'dashboard',
+        'total_articles': articles.count(),
+        'published_articles': articles.filter(status='published').count(),
+        'pending_articles': articles.filter(status='submitted').count(),
+        'under_review': articles.filter(status='under_review').count(),
+        'total_users': User.objects.count(),
+        'total_reviews': Review.objects.count(),
+        'recent_articles': articles.order_by('-created_at')[:5],
+    }
+    return render(request, 'editor/dashboard.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_articles(request):
+    """Manage all articles"""
+    articles = Article.objects.all().order_by('-created_at')
+    context = {
+        'active': 'articles',
+        'articles': articles,
+    }
+    return render(request, 'editor/articles.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_users(request):
+    """Manage all users"""
+    users = User.objects.all()
+    context = {
+        'active': 'users',
+        'users': users,
+    }
+    return render(request, 'editor/users.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_reviews(request):
+    """View all reviews"""
+    reviews = Review.objects.all().order_by('-submitted_date')
+    context = {
+        'active': 'reviews',
+        'reviews': reviews,
+    }
+    return render(request, 'editor/reviews.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_pending(request):
+    """View pending articles for approval"""
+    pending_articles = Article.objects.filter(status='submitted')
+    context = {
+        'active': 'pending',
+        'articles': pending_articles,
+    }
+    return render(request, 'editor/pending.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_article_edit(request, pk):
+    """Edit article as editor"""
+    article = get_object_or_404(Article, pk=pk)
+    
+    if request.method == 'POST':
+        form = ArticleForm(request.POST, instance=article)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Article updated successfully!')
+            return redirect('editor_articles')
+    else:
+        form = ArticleForm(instance=article)
+    
+    context = {
+        'form': form,
+        'article': article,
+        'active': 'articles',
+    }
+    return render(request, 'editor/article_edit.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_article_delete(request, pk):
+    """Delete article"""
+    article = get_object_or_404(Article, pk=pk)
+    
+    if request.method == 'POST':
+        article.delete()
+        messages.success(request, 'Article deleted successfully!')
+        return redirect('editor_articles')
+    
+    context = {
+        'article': article,
+        'active': 'articles',
+    }
+    return render(request, 'editor/article_delete.html', context)

@@ -1,0 +1,130 @@
+﻿@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_users(request):
+    """Manage all users"""
+    users = User.objects.all().order_by('-date_joined')
+    
+    # Get statistics
+    total_users = users.count()
+    authors = users.filter(role='author').count()
+    reviewers = users.filter(role='reviewer').count()
+    editors = users.filter(role='editor').count()
+    active_users = users.filter(is_active=True).count()
+    
+    context = {
+        'active': 'users',
+        'users': users,
+        'total_users': total_users,
+        'authors_count': authors,
+        'reviewers_count': reviewers,
+        'editors_count': editors,
+        'active_count': active_users,
+    }
+    return render(request, 'editor/users.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_user_detail(request, pk):
+    """View user details"""
+    user = get_object_or_404(User, pk=pk)
+    user_articles = user.articles.all()
+    user_reviews = user.reviews.all()
+    
+    context = {
+        'active': 'users',
+        'target_user': user,
+        'articles': user_articles,
+        'reviews': user_reviews,
+    }
+    return render(request, 'editor/user_detail.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_user_edit(request, pk):
+    """Edit user information"""
+    target_user = get_object_or_404(User, pk=pk)
+    
+    if request.method == 'POST':
+        # Update user fields
+        target_user.username = request.POST.get('username')
+        target_user.email = request.POST.get('email')
+        target_user.role = request.POST.get('role')
+        target_user.is_active = request.POST.get('is_active') == 'on'
+        target_user.bio = request.POST.get('bio', '')
+        
+        target_user.save()
+        messages.success(request, f'User {target_user.username} has been updated successfully!')
+        return redirect('editor_user_detail', pk=target_user.pk)
+    
+    context = {
+        'active': 'users',
+        'target_user': target_user,
+    }
+    return render(request, 'editor/user_edit.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_user_delete(request, pk):
+    """Delete a user (cannot delete self or other editors)"""
+    target_user = get_object_or_404(User, pk=pk)
+    
+    # Prevent deleting self
+    if target_user == request.user:
+        messages.error(request, 'You cannot delete your own account!')
+        return redirect('editor_users')
+    
+    # Prevent deleting other editors (optional security)
+    if target_user.is_editor() and target_user != request.user:
+        messages.error(request, 'You cannot delete other editor accounts!')
+        return redirect('editor_users')
+    
+    if request.method == 'POST':
+        username = target_user.username
+        target_user.delete()
+        messages.success(request, f'User {username} has been deleted successfully!')
+        return redirect('editor_users')
+    
+    context = {
+        'active': 'users',
+        'target_user': target_user,
+    }
+    return render(request, 'editor/user_delete.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_user_toggle_status(request, pk):
+    """Activate or deactivate a user"""
+    target_user = get_object_or_404(User, pk=pk)
+    
+    if target_user != request.user:  # Prevent self-deactivation
+        target_user.is_active = not target_user.is_active
+        target_user.save()
+        status = "activated" if target_user.is_active else "deactivated"
+        messages.success(request, f'User {target_user.username} has been {status}!')
+    else:
+        messages.error(request, 'You cannot change your own status!')
+    
+    return redirect('editor_users')
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_user_change_role(request, pk):
+    """Change user role"""
+    target_user = get_object_or_404(User, pk=pk)
+    
+    if request.method == 'POST':
+        new_role = request.POST.get('role')
+        if new_role in ['author', 'reviewer', 'editor']:
+            old_role = target_user.role
+            target_user.role = new_role
+            target_user.save()
+            messages.success(request, f'User {target_user.username}\'s role changed from {old_role} to {new_role}!')
+        else:
+            messages.error(request, 'Invalid role!')
+        
+        return redirect('editor_user_detail', pk=target_user.pk)
+    
+    context = {
+        'target_user': target_user,
+    }
+    return render(request, 'editor/user_change_role.html', context)

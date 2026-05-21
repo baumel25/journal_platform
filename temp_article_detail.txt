@@ -1,0 +1,34 @@
+﻿@login_required
+def article_detail(request, pk):
+    article = get_object_or_404(Article, pk=pk)
+    
+    # Check permissions
+    can_view = False
+    if request.user == article.author:
+        can_view = True
+    elif request.user.is_editor():
+        can_view = True
+    elif request.user.is_reviewer():
+        # Check if this reviewer is assigned to this article
+        if Review.objects.filter(article=article, reviewer=request.user).exists():
+            can_view = True
+    
+    if not can_view:
+        messages.error(request, 'You do not have permission to view this article.')
+        return redirect('dashboard')
+    
+    reviews = article.reviews.all()
+    
+    # Check if the current user (reviewer) has already submitted a review
+    has_submitted_review = False
+    if request.user.is_reviewer():
+        user_review = Review.objects.filter(article=article, reviewer=request.user).first()
+        if user_review and user_review.comments_to_author:
+            has_submitted_review = True
+    
+    context = {
+        'article': article,
+        'reviews': reviews,
+        'can_review': request.user.is_reviewer() and article.status == 'under_review' and not has_submitted_review
+    }
+    return render(request, 'articles/article_detail.html', context)

@@ -1,0 +1,108 @@
+﻿{% extends 'editor/base_admin.html' %}
+
+{% block page_title %}Détails de {{ target_user.username }}{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem;">
+    <!-- Colonne gauche - Info utilisateur -->
+    <div>
+        <div class="card" style="text-align: center;">
+            {% if target_user.profile_picture %}
+                <img src="{{ target_user.profile_picture.url }}" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem;">
+            {% else %}
+                <div style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 3rem;">
+                    {{ target_user.username|first|upper }}
+                </div>
+            {% endif %}
+            
+            <h2>{{ target_user.username }}</h2>
+            <p><span class="role-badge role-{{ target_user.role }}">{{ target_user.get_role_display }}</span></p>
+            
+            <div style="margin-top: 1rem; text-align: left;">
+                <p><strong> Email:</strong> {{ target_user.email|default:"Non renseigné" }}</p>
+                <p><strong> Inscrit le:</strong> {{ target_user.date_joined|date:"d/m/Y H:i" }}</p>
+                <p><strong> Dernière connexion:</strong> {{ target_user.last_login|date:"d/m/Y H:i"|default:"Jamais" }}</p>
+                <p><strong> Statut:</strong> {% if target_user.is_active %}Actif{% else %}Inactif{% endif %}</p>
+                <p><strong> Bio:</strong> {{ target_user.bio|default:"Aucune bio"|linebreaks }}</p>
+            </div>
+            
+            <div style="margin-top: 1rem;">
+                <a href="{% url 'editor_user_edit' target_user.id %}" class="btn btn-primary">Modifier</a>
+                <a href="{% url 'editor_users' %}" class="btn">Retour</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Colonne droite - Activité -->
+    <div>
+        <!-- Articles -->
+        <div class="card">
+            <h3> Articles de {{ target_user.username }}</h3>
+            {% if articles %}
+                <div class="data-table">
+                    <table>
+                        <thead><tr><th>Titre</th><th>Statut</th><th>Créé le</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            {% for article in articles %}
+                            <tr>
+                                <td>{{ article.title|truncatechars:50 }}</td>
+                                <td><span class="badge badge-{{ article.status }}">{{ article.get_status_display }}</span></td>
+                                <td>{{ article.created_at|date:"d/m/Y" }}</td>
+                                <td><a href="{% url 'article_detail' article.id %}" class="action-btn btn-view">Voir</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p>Aucun article.</p>
+            {% endif %}
+        </div>
+        
+        <!-- Relectures -->
+        <div class="card">
+            <h3> Relectures de {{ target_user.username }}</h3>
+            {% if reviews %}
+                <div class="data-table">
+                    <table>
+                        <thead><tr><th>Article</th><th>Recommandation</th><th>Note moyenne</th><th>Soumis le</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            {% for review in reviews %}
+                            <tr>
+                                <td>{{ review.article.title|truncatechars:40 }}</td>
+                                <td>{{ review.get_recommendation_display }}</td>
+                                <td>{{ review.get_average_score|floatformat:1 }}/5</td>
+                                <td>{{ review.submitted_date|date:"d/m/Y" }}</td>
+                                <td><a href="{% url 'article_detail' review.article.id %}" class="action-btn btn-view">Voir Article</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p>Aucune relecture.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.role-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.role-author { background: #10b981; color: white; }
+.role-reviewer { background: #f59e0b; color: white; }
+.role-editor { background: #8b5cf6; color: white; }
+.action-btn {
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    text-decoration: none;
+    font-size: 0.75rem;
+}
+.btn-view { background: #3b82f6; color: white; }
+.btn-edit { background: #f59e0b; color: white; }
+</style>
+{% endblock %}

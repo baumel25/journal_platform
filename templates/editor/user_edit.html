@@ -1,0 +1,49 @@
+﻿{% extends 'editor/base_admin.html' %}
+
+{% block page_title %}Modifier {{ target_user.username }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h2>Modifier l'utilisateur: {{ target_user.username }}</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label>Nom d'utilisateur</label>
+            <input type="text" name="username" value="{{ target_user.username }}" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" value="{{ target_user.email }}" class="form-control">
+        </div>
+        
+        <div class="form-group">
+            <label>Rôle</label>
+            <select name="role" class="form-control">
+                <option value="author" {% if target_user.role == 'author' %}selected{% endif %}>Auteur</option>
+                <option value="reviewer" {% if target_user.role == 'reviewer' %}selected{% endif %}>Relecteur</option>
+                <option value="editor" {% if target_user.role == 'editor' %}selected{% endif %}>Éditeur</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="is_active" {% if target_user.is_active %}checked{% endif %}>
+                Compte actif
+            </label>
+        </div>
+        
+        <div class="form-group">
+            <label>Bio</label>
+            <textarea name="bio" rows="5" class="form-control">{{ target_user.bio|default:'' }}</textarea>
+        </div>
+        
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            <a href="{% url 'editor_user_detail' target_user.id %}" class="btn">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

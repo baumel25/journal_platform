@@ -1,0 +1,46 @@
+﻿{% extends 'editor/base_admin.html' %}
+
+{% block page_title %}All Reviews{% endblock %}
+
+{% block content %}
+<div class="data-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Reviewer</th>
+                <th>Recommendation</th>
+                <th>Originality</th>
+                <th>Significance</th>
+                <th>Methodology</th>
+                <th>Clarity</th>
+                <th>Avg Score</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in reviews %}
+            <tr>
+                <td>{{ review.article.title|truncatechars:40 }}</td>
+                <td>{{ review.reviewer.username }}</td>
+                <td>{{ review.get_recommendation_display }}</td>
+                <td>{{ review.originality_score|default:"-" }}/5</td>
+                <td>{{ review.significance_score|default:"-" }}/5</td>
+                <td>{{ review.methodology_score|default:"-" }}/5</td>
+                <td>{{ review.clarity_score|default:"-" }}/5</td>
+                <td><strong>{{ review.get_average_score|floatformat:1|default:"-" }}</strong></td>
+                <td>{{ review.submitted_date|date:"M d, Y H:i" }}</td>
+                <td>
+                    <a href="{% url 'article_detail' review.article.pk %}" class="action-btn btn-view">View Full Review</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="10" style="text-align: center;">No reviews submitted yet</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+        <h2>{{ article.title }}</h2>
+        <span class="badge badge-{{ article.status }}">{{ article.get_status_display }}</span>
+    </div>
+    
+    <p><strong>Author:</strong> {{ article.author.username }}</p>
+    <p><strong>Keywords:</strong> {{ article.keywords }}</p>
+    <p><strong>Submitted:</strong> {{ article.submitted_date|date:"M d, Y"|default:"Not submitted yet" }}</p>
+    
+    <hr>
+    
+    <h3>Abstract</h3>
+    <p>{{ article.abstract|linebreaks }}</p>
+    
+    <h3>Content</h3>
+    <div>{{ article.content|linebreaks }}</div>
+    
+    <hr>
+    
+    <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+        {% if user == article.author %}
+            {% if article.status == 'draft' %}
+                <a href="{% url 'edit_article' article.pk %}" class="btn btn-warning"> Edit</a>
+                <a href="{% url 'submit_article' article.pk %}" class="btn btn-primary"> Submit for Review</a>
+            {% endif %}
+        {% endif %}
+        
+        {% if user.is_editor %}
+            {% if article.status == 'submitted' %}
+                <a href="{% url 'approve_article' article.pk %}" class="btn btn-success"> Approve</a>
+                <a href="{% url 'reject_article' article.pk %}" class="btn btn-danger"> Reject</a>
+            {% endif %}
+        {% endif %}
+        
+        {% if user.is_reviewer and article.status == 'under_review' %}
+            {% if not user.reviews.filter(article=article, comments_to_author__isnull=False).exists %}
+                <a href="{% url 'submit_review' article.pk %}" class="btn btn-primary"> Submit Review</a>
+            {% endif %}
+        {% endif %}
+        
+        <!-- PDF DOWNLOAD BUTTON -->
+        {% if user == article.author or user.is_editor or user.is_reviewer %}
+            <a href="{% url 'download_article_pdf' article.pk %}" class="btn" style="background: #dc2626; color: white;">
+                 Download PDF
+            </a>
+        {% endif %}
+        
+        <a href="{% url 'dashboard' %}" class="btn">⬅️ Back to Dashboard</a>
+    </div>
+</div>
+
+{% if reviews %}
+<div class="card">
+    <h3>Reviews</h3>
+    {% for review in reviews %}
+        <div style="border: 1px solid #e2e8f0; padding: 1rem; margin-bottom: 1rem; border-radius: 5px;">
+            <p><strong>Reviewer:</strong> {{ review.reviewer.username }}</p>
+            <p><strong>Recommendation:</strong> {{ review.get_recommendation_display }}</p>
+            {% if review.originality_score %}
+                <p><strong>Scores:</strong> 
+                    Originality: {{ review.originality_score }}/5 | 
+                    Significance: {{ review.significance_score }}/5 | 
+                    Methodology: {{ review.methodology_score }}/5 | 
+                    Clarity: {{ review.clarity_score }}/5
+                </p>
+                <p><strong>Average Score:</strong> {{ review.get_average_score|floatformat:1 }}/5</p>
+            {% endif %}
+            
+            <p><strong>Comments to Author:</strong></p>
+            <p style="background: #f8fafc; padding: 0.5rem; border-radius: 5px;">{{ review.comments_to_author|linebreaks }}</p>
+            
+            {% if user.is_editor and review.comments_to_editor %}
+                <p><strong>Comments to Editor (Confidential):</strong></p>
+                <p style="background: #fefcbf; padding: 0.5rem; border-radius: 5px;">{{ review.comments_to_editor|linebreaks }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

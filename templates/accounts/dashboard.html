@@ -1,0 +1,77 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="card">
+    <h2>Welcome, {{ user.username }}!</h2>
+    <p><strong>Role:</strong> {{ user.get_role_display }}</p>
+    
+    {% if user.role == 'author' %}
+        <div style="margin-top: 1rem;">
+            <a href="{% url 'create_article' %}" class="btn btn-primary">+ Create New Article</a>
+            
+            <h3 style="margin-top: 2rem;">Your Articles</h3>
+            {% for article in user.articles.all %}
+                <div class="article-card" style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 5px;">
+                    <h4>{{ article.title }}</h4>
+                    <p>Status: <span class="badge badge-{{ article.status }}">{{ article.get_status_display }}</span></p>
+                    <a href="{% url 'article_detail' article.id %}" class="btn btn-primary">View Details</a>
+                </div>
+            {% empty %}
+                <p>No articles yet. <a href="{% url 'create_article' %}">Create your first article</a></p>
+            {% endfor %}
+        </div>
+    
+    {% elif user.role == 'reviewer' %}
+        <div style="margin-top: 1rem;">
+            <h3> Pending Reviews</h3>
+            {% for review in user.reviews.all %}
+                {% if not review.comments_to_author %}
+                <div class="article-card" style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 5px;">
+                    <h4>{{ review.article.title }}</h4>
+                    <p><strong>Author:</strong> {{ review.article.author.username }}</p>
+                    <p><strong>Submitted:</strong> {{ review.article.submitted_date|date:"M d, Y" }}</p>
+                    <a href="{% url 'submit_review' review.article.id %}" class="btn btn-primary">Submit Review</a>
+                    <a href="{% url 'article_detail' review.article.id %}" class="btn">View Article</a>
+                </div>
+                {% endif %}
+            {% empty %}
+                <p>No pending reviews.</p>
+            {% endfor %}
+            
+            <h3 style="margin-top: 2rem;"> Completed Reviews</h3>
+            {% for review in user.reviews.all %}
+                {% if review.comments_to_author %}
+                <div class="article-card" style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 5px;">
+                    <h4>{{ review.article.title }}</h4>
+                    <p><strong>Your Recommendation:</strong> {{ review.get_recommendation_display }}</p>
+                    <p><strong>Average Score:</strong> {{ review.get_average_score|floatformat:1 }}/5</p>
+                    <a href="{% url 'article_detail' review.article.id %}" class="btn">View Details</a>
+                </div>
+                {% endif %}
+            {% empty %}
+                <p>No completed reviews yet.</p>
+            {% endfor %}
+        </div>
+    
+    {% elif user.role == 'editor' %}
+        <div style="margin-top: 1rem;">
+            <a href="{% url 'editor_dashboard' %}" class="btn btn-primary">Go to Editor Admin Panel</a>
+            
+            <h3 style="margin-top: 2rem;">Recent Reviews Received</h3>
+            {% for review in reviews %}
+                <div class="article-card" style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 5px;">
+                    <h4>{{ review.article.title }}</h4>
+                    <p><strong>Reviewer:</strong> {{ review.reviewer.username }}</p>
+                    <p><strong>Recommendation:</strong> {{ review.get_recommendation_display }}</p>
+                    <p><strong>Average Score:</strong> {{ review.get_average_score|floatformat:1 }}/5</p>
+                    <a href="{% url 'article_detail' review.article.id %}" class="btn btn-primary">View Full Review</a>
+                </div>
+            {% empty %}
+                <p>No reviews submitted yet.</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+﻿{% extends 'editor/base_admin.html' %}
+
+{% block page_title %}Assign Reviewer{% endblock %}
+
+{% block content %}
+<div class="card" style="background: white; padding: 2rem; border-radius: 10px; max-width: 600px; margin: 0 auto;">
+    <h2>Assign Reviewer for Article</h2>
+    
+    <div style="margin: 1rem 0; padding: 1rem; background: #f8fafc; border-radius: 5px;">
+        <p><strong>Article Title:</strong> {{ article.title }}</p>
+        <p><strong>Author:</strong> {{ article.author.username }}</p>
+        <p><strong>Current Status:</strong> {{ article.get_status_display }}</p>
+        <p><strong>Submitted:</strong> {{ article.submitted_date|date:"M d, Y" }}</p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Select a Reviewer:</label>
+            <select name="reviewer_id" class="form-control" required style="width: 100%; padding: 0.5rem;">
+                <option value="">-- Choose a reviewer --</option>
+                {% for reviewer in reviewers %}
+                    <option value="{{ reviewer.id }}">{{ reviewer.username }} ({{ reviewer.email }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-primary">Assign Reviewer</button>
+            <a href="{% url 'editor_pending' %}" class="btn" style="background: #64748b; color: white;">Cancel</a>
+        </div>
+    </form>
+    
+    {% if not reviewers %}
+        <div style="margin-top: 1rem; padding: 1rem; background: #fefcbf; border-radius: 5px;">
+            <strong>No reviewers available!</strong> Please create reviewer accounts first.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

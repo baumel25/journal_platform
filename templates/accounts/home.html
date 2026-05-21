@@ -1,0 +1,61 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero-section" style="text-align: center; margin-bottom: 3rem;">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" data-translate="welcome">
+        Bienvenue sur Journal Platform
+    </h1>
+    <p style="font-size: 1.2rem; color: #475569; margin-bottom: 2rem;" data-translate="platform_description">
+        La plateforme moderne de gestion de publications académiques
+    </p>
+    
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+        <a href="{% url 'login' %}" class="btn btn-primary" style="font-size: 1.1rem;" data-translate="login">
+             Se connecter
+        </a>
+        <a href="{% url 'register' %}" class="btn" style="background: #e2e8f0; color: #1e293b;" data-translate="register">
+             Créer un compte
+        </a>
+    </div>
+</div>
+
+<div class="grid">
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;"></div>
+        <h3 data-translate="role_author">Pour les Auteurs</h3>
+        <p data-translate="author_desc">Soumettez vos articles de recherche pour évaluation par les pairs.</p>
+    </div>
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;"></div>
+        <h3 data-translate="role_reviewer">Pour les Relecteurs</h3>
+        <p data-translate="reviewer_desc">Évaluez les articles et contribuez à la qualité scientifique.</p>
+    </div>
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;"></div>
+        <h3 data-translate="role_editor">Pour les Éditeurs</h3>
+        <p data-translate="editor_desc">Gérez le processus d'évaluation et les publications.</p>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center;">
+    <h3 style="color: white;" data-translate="how_it_works">Comment ça fonctionne ?</h3>
+    <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 1.5rem; flex-wrap: wrap;">
+        <div>
+            <strong>1️⃣</strong> <span data-translate="step1">Soumission</span><br>
+            <span data-translate="step1_desc">Les auteurs soumettent leurs articles</span>
+        </div>
+        <div>
+            <strong>2️⃣</strong> <span data-translate="step2">Évaluation</span><br>
+            <span data-translate="step2_desc">Les relecteurs évaluent</span>
+        </div>
+        <div>
+            <strong>3️⃣</strong> <span data-translate="step3">Décision</span><br>
+            <span data-translate="step3_desc">Les éditeurs approuvent</span>
+        </div>
+        <div>
+            <strong>4️⃣</strong> <span data-translate="step4">Publication</span><br>
+            <span data-translate="step4_desc">L'article est publié</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
