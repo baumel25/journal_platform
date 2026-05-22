@@ -1,22 +1,77 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block content %}
 <div class="card">
-    <h2>My Articles</h2>
-    <a href="{% url 'create_article' %}" class="btn btn-primary" style="margin-bottom: 1rem;">Create New Article</a>
-    
-    <div class="grid">
-        {% for article in articles %}
-            <div class="article-card">
-                <h4>{{ article.title }}</h4>
-                <p>Status: <span class="badge badge-{{ article.status }}">{{ article.get_status_display }}</span></p>
-                <p>Created: {{ article.created_at|date:"M d, Y" }}</p>
-                <p>Last Updated: {{ article.updated_at|date:"M d, Y" }}</p>
-                <a href="{% url 'article_detail' article.pk %}" class="btn btn-primary">View Details</a>
-            </div>
-        {% empty %}
-            <p>No articles yet. <a href="{% url 'create_article' %}">Create your first article</a></p>
-        {% endfor %}
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <h2>My Articles</h2>
+        <a href="{% url 'create_article' %}" class="btn btn-primary">+ Create New Article</a>
     </div>
+    
+    {% if articles %}
+        <div style="margin-top: 2rem;">
+            {% for article in articles %}
+                <div class="article-card" style="margin-bottom: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; border-radius: 10px; transition: box-shadow 0.3s;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap;">
+                        <div>
+                            <h3 style="margin-bottom: 0.5rem;">{{ article.title }}</h3>
+                            <p style="color: #64748b; margin-bottom: 0.5rem;">
+                                Submitted: {{ article.submitted_date|date:"M d, Y"|default:"Not submitted" }}
+                            </p>
+                            <p>
+                                Status: 
+                                <span class="badge badge-{{ article.status }}">
+                                    {{ article.get_status_display }}
+                                </span>
+                            </p>
+                            {% if article.published_date %}
+                                <p style="color: #10b981; margin-top: 0.5rem;">
+                                    ✓ Published on {{ article.published_date|date:"M d, Y" }}
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <a href="{% url 'article_detail' article.pk %}" class="btn btn-primary">View Details</a>
+                            {% if article.status == 'draft' %}
+                                <a href="{% url 'edit_article' article.pk %}" class="btn btn-warning">Edit</a>
+                                <a href="{% url 'submit_article' article.pk %}" class="btn btn-success">Submit</a>
+                            {% endif %}
+                            <a href="{% url 'download_article_pdf' article.pk %}" class="btn" style="background: #dc2626; color: white;">Download PDF</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem;">
+            <p style="color: #64748b; margin-bottom: 1rem;">You haven't created any articles yet.</p>
+            <a href="{% url 'create_article' %}" class="btn btn-primary">Create Your First Article</a>
+        </div>
+    {% endif %}
 </div>
+
+<style>
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.badge-draft { background: #e2e8f0; color: #4a5568; }
+.badge-submitted { background: #fef3c7; color: #92400e; }
+.badge-under_review { background: #dbeafe; color: #1e40af; }
+.badge-approved { background: #d1fae5; color: #065f46; }
+.badge-published { background: #a7f3d0; color: #064e3b; }
+.badge-rejected { background: #fee2e2; color: #991b1b; }
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-primary { background: #667eea; color: white; }
+.btn-success { background: #10b981; color: white; }
+.btn-warning { background: #f59e0b; color: white; }
+</style>
 {% endblock %}

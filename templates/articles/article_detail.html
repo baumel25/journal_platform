@@ -2,83 +2,140 @@
 
 {% block content %}
 <div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: start;">
+    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
         <h2>{{ article.title }}</h2>
         <span class="badge badge-{{ article.status }}">{{ article.get_status_display }}</span>
     </div>
     
-    <p><strong>Author:</strong> {{ article.author.username }}</p>
-    <p><strong>Keywords:</strong> {{ article.keywords }}</p>
-    <p><strong>Submitted:</strong> {{ article.submitted_date|date:"M d, Y"|default:"Not submitted yet" }}</p>
+    <div style="margin-top: 1rem;">
+        <p><strong>Author:</strong> {{ article.author.username }}</p>
+        <p><strong>Keywords:</strong> {{ article.keywords }}</p>
+        <p><strong>Submitted:</strong> {{ article.submitted_date|date:"M d, Y H:i"|default:"Not submitted yet" }}</p>
+        {% if article.published_date %}
+            <p><strong>Published:</strong> {{ article.published_date|date:"M d, Y H:i" }}</p>
+        {% endif %}
+        {% if article.approved_date %}
+            <p><strong>Approved:</strong> {{ article.approved_date|date:"M d, Y H:i" }}</p>
+        {% endif %}
+    </div>
     
     <hr>
     
     <h3>Abstract</h3>
-    <p>{{ article.abstract|linebreaks }}</p>
+    <p style="background: #f8fafc; padding: 1rem; border-radius: 5px;">{{ article.abstract|linebreaks }}</p>
     
     <h3>Content</h3>
-    <div>{{ article.content|linebreaks }}</div>
+    <div style="background: #f8fafc; padding: 1rem; border-radius: 5px; line-height: 1.6;">
+        {{ article.content|linebreaks }}
+    </div>
     
     <hr>
     
     <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
         {% if user == article.author %}
             {% if article.status == 'draft' %}
-                <a href="{% url 'edit_article' article.pk %}" class="btn btn-warning"> Edit</a>
-                <a href="{% url 'submit_article' article.pk %}" class="btn btn-primary"> Submit for Review</a>
+                <a href="{% url 'edit_article' article.pk %}" class="btn btn-warning">✏️ Edit Article</a>
+                <a href="{% url 'submit_article' article.pk %}" class="btn btn-primary">📤 Submit for Review</a>
+            {% endif %}
+            {% if article.status == 'needs_revision' %}
+                <a href="{% url 'edit_article' article.pk %}" class="btn btn-warning">✏️ Revise Article</a>
             {% endif %}
         {% endif %}
         
         {% if user.is_editor %}
             {% if article.status == 'submitted' %}
-                <a href="{% url 'approve_article' article.pk %}" class="btn btn-success"> Approve</a>
-                <a href="{% url 'reject_article' article.pk %}" class="btn btn-danger"> Reject</a>
+                <a href="{% url 'approve_article' article.pk %}" class="btn btn-success">✅ Approve</a>
+                <a href="{% url 'reject_article' article.pk %}" class="btn btn-danger">❌ Reject</a>
+            {% endif %}
+            {% if article.status == 'under_review' %}
+                <a href="{% url 'approve_article' article.pk %}" class="btn btn-success">✅ Approve</a>
+                <a href="{% url 'reject_article' article.pk %}" class="btn btn-danger">❌ Reject</a>
             {% endif %}
         {% endif %}
         
         {% if user.is_reviewer and article.status == 'under_review' %}
-            {% if not user.reviews.filter(article=article, comments_to_author__isnull=False).exists %}
-                <a href="{% url 'submit_review' article.pk %}" class="btn btn-primary"> Submit Review</a>
+            {% if not existing_review %}
+                <a href="{% url 'submit_review' article.pk %}" class="btn btn-primary">⭐ Submit Review</a>
             {% endif %}
         {% endif %}
         
-        <!-- PDF DOWNLOAD BUTTON -->
-        {% if user == article.author or user.is_editor or user.is_reviewer %}
-            <a href="{% url 'download_article_pdf' article.pk %}" class="btn" style="background: #dc2626; color: white;">
-                 Download PDF
-            </a>
-        {% endif %}
+        <!-- PDF Download Button -->
+        <a href="{% url 'download_article_pdf' article.pk %}" class="btn" style="background: #dc2626; color: white;">
+            📄 Download PDF
+        </a>
         
         <a href="{% url 'dashboard' %}" class="btn">⬅️ Back to Dashboard</a>
     </div>
 </div>
 
+<!-- Reviews Section -->
 {% if reviews %}
 <div class="card">
     <h3>Reviews</h3>
     {% for review in reviews %}
         <div style="border: 1px solid #e2e8f0; padding: 1rem; margin-bottom: 1rem; border-radius: 5px;">
-            <p><strong>Reviewer:</strong> {{ review.reviewer.username }}</p>
-            <p><strong>Recommendation:</strong> {{ review.get_recommendation_display }}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <p><strong>Reviewer:</strong> {{ review.reviewer.username }}</p>
+                <span class="badge" style="background: 
+                    {% if review.recommendation == 'accept' %}#10b981
+                    {% elif review.recommendation == 'minor_revision' %}#f59e0b
+                    {% elif review.recommendation == 'major_revision' %}#f59e0b
+                    {% else %}#ef4444{% endif %}; color: white;">
+                    {{ review.get_recommendation_display }}
+                </span>
+            </div>
+            
             {% if review.originality_score %}
-                <p><strong>Scores:</strong> 
-                    Originality: {{ review.originality_score }}/5 | 
-                    Significance: {{ review.significance_score }}/5 | 
-                    Methodology: {{ review.methodology_score }}/5 | 
-                    Clarity: {{ review.clarity_score }}/5
-                </p>
+                <p style="margin-top: 0.5rem;"><strong>Scores:</strong></p>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
+                    <span>Originality: {{ review.originality_score }}/5</span>
+                    <span>Significance: {{ review.significance_score }}/5</span>
+                    <span>Methodology: {{ review.methodology_score }}/5</span>
+                    <span>Clarity: {{ review.clarity_score }}/5</span>
+                </div>
                 <p><strong>Average Score:</strong> {{ review.get_average_score|floatformat:1 }}/5</p>
             {% endif %}
             
-            <p><strong>Comments to Author:</strong></p>
+            <p style="margin-top: 0.5rem;"><strong>Comments to Author:</strong></p>
             <p style="background: #f8fafc; padding: 0.5rem; border-radius: 5px;">{{ review.comments_to_author|linebreaks }}</p>
             
             {% if user.is_editor and review.comments_to_editor %}
                 <p><strong>Comments to Editor (Confidential):</strong></p>
-                <p style="background: #fefcbf; padding: 0.5rem; border-radius: 5px;">{{ review.comments_to_editor|linebreaks }}</p>
+                <p style="background: #fef3c7; padding: 0.5rem; border-radius: 5px;">{{ review.comments_to_editor|linebreaks }}</p>
             {% endif %}
+            
+            <p><small>Submitted: {{ review.submitted_date|date:"M d, Y H:i" }}</small></p>
         </div>
     {% endfor %}
 </div>
 {% endif %}
+
+<style>
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+.badge-draft { background: #e2e8f0; color: #4a5568; }
+.badge-submitted { background: #fef3c7; color: #92400e; }
+.badge-under_review { background: #dbeafe; color: #1e40af; }
+.badge-approved { background: #d1fae5; color: #065f46; }
+.badge-published { background: #a7f3d0; color: #064e3b; }
+.badge-rejected { background: #fee2e2; color: #991b1b; }
+.badge-needs_revision { background: #fed7aa; color: #9a3412; }
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-primary { background: #667eea; color: white; }
+.btn-success { background: #10b981; color: white; }
+.btn-warning { background: #f59e0b; color: white; }
+.btn-danger { background: #ef4444; color: white; }
+</style>
 {% endblock %}
