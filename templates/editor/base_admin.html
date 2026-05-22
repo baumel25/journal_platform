@@ -1,27 +1,13 @@
 ﻿{% load static %}
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Panel Admin - Journal Platform{% endblock %}</title>
+    <title>{% block title %}Editor Panel - Journal Platform{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f5f7fb;
-            display: flex;
-            overflow-x: hidden;
-        }
-        
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -31,57 +17,24 @@
             position: fixed;
             height: 100vh;
             overflow-y: auto;
-            z-index: 100;
         }
         
-        .sidebar-header {
-            padding: 2rem 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-        
-        .admin-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin: 0 auto 1rem;
-            border: 3px solid #667eea;
-            overflow: hidden;
-        }
-        
-        .admin-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .admin-avatar-default {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin: 0 auto 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: bold;
-            border: 3px solid white;
-        }
-        
-        .sidebar-header h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.25rem;
-        }
-        
-        .sidebar-header p {
-            font-size: 0.75rem;
-            opacity: 0.7;
-        }
-        
-        .nav-menu {
+        .main-content {
+            margin-left: 280px;
             flex: 1;
-            padding: 1rem 0;
+        }
+        
+        .top-header {
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .content-area {
+            padding: 2rem;
         }
         
         .nav-item {
@@ -107,227 +60,32 @@
             gap: 0.75rem;
         }
         
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
         .sidebar-footer {
             padding: 1.5rem;
             border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: auto;
         }
         
-        /* Main Content */
-        .main-content {
-            margin-left: 280px;
-            flex: 1;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .top-header {
-            background: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 99;
-        }
-        
-        .page-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #1e293b;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .user-avatar-small {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .user-avatar-small img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        
-        .content-area {
-            padding: 2rem;
-            flex: 1;
-        }
-        
-        /* Boutons */
         .btn {
             padding: 0.5rem 1rem;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 0.9rem;
-            transition: all 0.3s;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
         }
         
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-        
         .btn-danger {
             background: #ef4444;
             color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-        
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #667eea;
-            color: #667eea;
-        }
-        
-        .btn-outline:hover {
-            background: #667eea;
-            color: white;
-        }
-        
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 1.5rem;
-        }
-        
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-3px);
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #667eea;
-        }
-        
-        .stat-label {
-            color: #64748b;
-            margin-top: 0.5rem;
-        }
-        
-        /* Tables */
-        .data-table {
-            background: white;
-            border-radius: 16px;
-            overflow-x: auto;
-        }
-        
-        .data-table table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .data-table th {
-            background: #f8fafc;
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: #1e293b;
-        }
-        
-        .data-table td {
-            padding: 1rem;
-            border-top: 1px solid #e2e8f0;
-        }
-        
-        .status-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        
-        .status-published { background: #10b981; color: white; }
-        .status-draft { background: #64748b; color: white; }
-        .status-submitted { background: #f59e0b; color: white; }
-        .status-under_review { background: #3b82f6; color: white; }
-        .status-approved { background: #8b5cf6; color: white; }
-        
-        .action-btn {
-            padding: 0.25rem 0.75rem;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 0.75rem;
-            margin: 0 0.25rem;
-        }
-        
-        .btn-view { background: #3b82f6; color: white; }
-        .btn-edit { background: #f59e0b; color: white; }
-        .btn-delete { background: #ef4444; color: white; }
-        
-        /* Mode sombre */
-        [data-theme="dark"] body {
-            background: #0f172a;
-        }
-        
-        [data-theme="dark"] .top-header,
-        [data-theme="dark"] .card,
-        [data-theme="dark"] .stat-card,
-        [data-theme="dark"] .data-table {
-            background: #1e293b;
-            color: #e2e8f0;
-        }
-        
-        [data-theme="dark"] .data-table th {
-            background: #0f172a;
-            color: #cbd5e1;
-        }
-        
-        [data-theme="dark"] .data-table td {
-            border-top-color: #334155;
-        }
-        
-        [data-theme="dark"] .page-title {
-            color: #e2e8f0;
         }
         
         @media (max-width: 768px) {
@@ -337,107 +95,79 @@
             .main-content {
                 margin-left: 80px;
             }
-            .sidebar-header h3, .sidebar-header p, .nav-item span:last-child {
+            .sidebar-header h2, .sidebar-header p, .nav-item span:last-child {
                 display: none;
-            }
-            .admin-avatar, .admin-avatar-default {
-                width: 50px;
-                height: 50px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <!-- Photo de profil dans la sidebar -->
-            <a href="{% url 'profile' %}" style="text-decoration: none;">
-                {% if user.profile_picture %}
-                    <div class="admin-avatar">
-                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
-                    </div>
-                {% else %}
-                    <div class="admin-avatar-default">
-                        {{ user.username|first|upper }}
-                    </div>
-                {% endif %}
-                <h3>{{ user.username }}</h3>
-                <p>{{ user.get_role_display }}</p>
-            </a>
+            <h2>📚 Journal Admin</h2>
+            <p>Editor Panel</p>
         </div>
         
         <div class="nav-menu">
             <div class="nav-item {% if active == 'dashboard' %}active{% endif %}">
                 <a href="{% url 'editor_dashboard' %}">
-                    <span></span>
+                    <span>📊</span>
                     <span>Dashboard</span>
                 </a>
             </div>
             <div class="nav-item {% if active == 'articles' %}active{% endif %}">
                 <a href="{% url 'editor_articles' %}">
-                    <span></span>
+                    <span>📄</span>
                     <span>Articles</span>
                 </a>
             </div>
             <div class="nav-item {% if active == 'users' %}active{% endif %}">
                 <a href="{% url 'editor_users' %}">
-                    <span></span>
-                    <span>Utilisateurs</span>
+                    <span>👥</span>
+                    <span>Users</span>
                 </a>
             </div>
             <div class="nav-item {% if active == 'reviews' %}active{% endif %}">
                 <a href="{% url 'editor_reviews' %}">
-                    <span></span>
-                    <span>Relectures</span>
+                    <span>⭐</span>
+                    <span>Reviews</span>
                 </a>
             </div>
             <div class="nav-item {% if active == 'pending' %}active{% endif %}">
                 <a href="{% url 'editor_pending' %}">
-                    <span></span>
-                    <span>En attente</span>
+                    <span>⏳</span>
+                    <span>Pending</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="{% url 'profile' %}">
+                    <span>👤</span>
+                    <span>My Profile</span>
                 </a>
             </div>
         </div>
         
         <div class="sidebar-footer">
-            <!-- Bouton retour au site -->
             <div class="nav-item">
                 <a href="{% url 'dashboard' %}">
-                    <span></span>
-                    <span>Retour au site</span>
+                    <span>🏠</span>
+                    <span>Back to Site</span>
                 </a>
             </div>
             <div class="nav-item">
                 <a href="{% url 'logout' %}">
-                    <span></span>
-                    <span>Déconnexion</span>
+                    <span>🚪</span>
+                    <span>Logout</span>
                 </a>
             </div>
         </div>
     </div>
     
-    <!-- Main Content -->
     <div class="main-content">
         <div class="top-header">
-            <h1 class="page-title">{% block page_title %}Dashboard Administrateur{% endblock %}</h1>
+            <h1>{% block page_title %}Dashboard{% endblock %}</h1>
             <div class="user-info">
-                <a href="{% url 'profile' %}" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
-                    {% if user.profile_picture %}
-                        <div class="user-avatar-small">
-                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
-                        </div>
-                    {% else %}
-                        <div class="user-avatar-small">
-                            {{ user.username|first|upper }}
-                        </div>
-                    {% endif %}
-                    <div>
-                        <strong>{{ user.username }}</strong>
-                        <br>
-                        <small>{{ user.get_role_display }}</small>
-                    </div>
-                </a>
+                <span>Welcome, {{ user.username }}</span>
             </div>
         </div>
         
@@ -445,13 +175,5 @@
             {% block content %}{% endblock %}
         </div>
     </div>
-    
-    <script src="{% static 'js/main.js' %}"></script>
-    <script>
-        // Initialisation du thème
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
-    {% block extra_js %}{% endblock %}
 </body>
 </html>

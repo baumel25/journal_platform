@@ -1,90 +1,180 @@
-﻿{% load static %}
-<!DOCTYPE html>
-<html lang="fr" data-theme="light">
+﻿<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-translate="welcome">Journal Platform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    {% block extra_css %}{% endblock %}
+    <title>Journal Platform - Academic Journal Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #667eea; text-decoration: none; }
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+        .nav-links a { text-decoration: none; color: #333; transition: color 0.3s; }
+        .nav-links a:hover { color: #667eea; }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8fafc;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .container { flex: 1; max-width: 1200px; margin: 2rem auto; padding: 0 2rem; width: 100%; }
+        .card { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: transform 0.3s; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a67d8; transform: translateY(-2px); }
+        .btn-danger { background: #f56565; color: white; }
+        
+        /* Alert message styles with animation */
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            position: relative;
+            animation: slideIn 0.5s ease;
+            cursor: pointer;
+        }
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid #10b981;
+        }
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid #ef4444;
+        }
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        /* Close button for alerts */
+        .alert-close {
+            float: right;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: inherit;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        .alert-close:hover {
+            opacity: 1;
+        }
+        
+        /* Fade out animation */
+        .alert.fade-out {
+            animation: fadeOut 0.5s ease forwards;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+                display: none;
+            }
+        }
+        
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 5px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .footer { background: #1e293b; color: #e2e8f0; padding: 2rem; margin-top: auto; }
+        .footer-content { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
+        .footer-section h3 { color: #667eea; margin-bottom: 1rem; }
+        .footer-section ul { list-style: none; }
+        .footer-section ul li { margin-bottom: 0.5rem; }
+        .footer-section a { color: #e2e8f0; text-decoration: none; }
+        .footer-section a:hover { color: #667eea; }
+        .footer-bottom { text-align: center; padding-top: 2rem; margin-top: 2rem; border-top: 1px solid #334155; }
+        @media (max-width: 768px) { .navbar { flex-direction: column; gap: 1rem; } .container { padding: 0 1rem; } }
+    </style>
 </head>
 <body>
     <nav class="navbar">
-        <div class="navbar-container">
-            <a href="/" class="logo">
-                 Journal Platform
-            </a>
-            <div class="nav-links">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard' %}" data-translate="nav_dashboard">
-                         Dashboard
-                    </a>
-                    {% if user.role == 'author' %}
-                        <a href="{% url 'create_article' %}" data-translate="nav_new_article">
-                             Nouvel article
-                        </a>
-                        <a href="{% url 'my_articles' %}" data-translate="nav_my_articles">
-                             Mes articles
-                        </a>
-                    {% endif %}
-                    {% if user.role == 'reviewer' %}
-                        <a href="{% url 'pending_reviews' %}" data-translate="nav_pending_reviews">
-                             Relectures
-                        </a>
-                    {% endif %}
-                    {% if user.role == 'editor' %}
-                        <a href="{% url 'editor_dashboard' %}" data-translate="nav_admin_panel">
-                             Panel admin
-                        </a>
-                    {% endif %}
-                    <a href="{% url 'profile' %}" data-translate="nav_profile">
-                         Profil
-                    </a>
-                    <div class="user-info">
-                        {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture.url }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                        {% else %}
-                            <div class="user-avatar">
-                                {{ user.username|first|upper }}
-                            </div>
-                        {% endif %}
-                        <div>
-                            <strong>{{ user.username }}</strong>
-                            <br>
-                            <small style="font-size: 0.75rem;" data-translate="role_{{ user.role }}">{{ user.get_role_display }}</small>
-                        </div>
-                    </div>
-                    <a href="{% url 'logout' %}" class="btn btn-danger" style="padding: 0.5rem 1rem;" data-translate="nav_logout">
-                         Déconnexion
-                    </a>
-                {% else %}
-                    <a href="{% url 'login' %}" data-translate="nav_login">
-                         Connexion
-                    </a>
-                    <a href="{% url 'register' %}" data-translate="nav_register">
-                         Inscription
-                    </a>
+        <a href="/" class="logo">📝 Journal Platform</a>
+        <div class="nav-links">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                {% if user.role == 'author' %}
+                    <a href="{% url 'create_article' %}">New Article</a>
+                    <a href="{% url 'my_articles' %}">My Articles</a>
                 {% endif %}
-                
-                <!-- Contrôles de langue et thème -->
-                <div class="control-group">
-                    <div class="lang-selector">
-                        <button id="lang-fr" class="lang-btn active" onclick="setLanguage('fr')">FR</button>
-                        <button id="lang-en" class="lang-btn" onclick="setLanguage('en')">EN</button>
-                    </div>
-                    <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle">
-                        <span id="theme-icon">🌙</span>
-                    </button>
+                {% if user.role == 'reviewer' %}
+                    <a href="{% url 'pending_reviews' %}">Pending Reviews</a>
+                {% endif %}
+                {% if user.role == 'editor' %}
+                    <a href="{% url 'editor_dashboard' %}">Editor Panel</a>
+                {% endif %}
+                <a href="{% url 'profile' %}">Profile</a>
+                <div class="user-info">
+                    <div class="user-avatar">{{ user.username|first|upper }}</div>
+                    <span>Welcome, {{ user.username }} ({{ user.get_role_display }})</span>
                 </div>
-            </div>
+                <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}">Register</a>
+            {% endif %}
         </div>
     </nav>
     
     <div class="container">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
+                <div class="alert alert-{{ message.tags }}" role="alert">
+                    <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
                     {{ message }}
                 </div>
             {% endfor %}
@@ -96,44 +186,72 @@
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-section">
-                <h3> Journal Platform</h3>
-                <p data-translate="footer_platform">Plateforme de gestion de journal académique avec système d'évaluation par les pairs.</p>
+                <h3>📚 Journal Platform</h3>
+                <p>Academic journal management platform with peer review system.</p>
             </div>
             <div class="footer-section">
-                <h3 data-translate="footer_quick_links">Liens rapides</h3>
+                <h3>Quick Links</h3>
                 <ul>
-                    <li><a href="/" data-translate="nav_home">Accueil</a></li>
+                    <li><a href="/">Home</a></li>
                     {% if user.is_authenticated %}
-                        <li><a href="{% url 'dashboard' %}" data-translate="nav_dashboard">Tableau de bord</a></li>
-                        <li><a href="{% url 'profile' %}" data-translate="nav_profile">Mon profil</a></li>
+                        <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                        <li><a href="{% url 'profile' %}">Profile</a></li>
                     {% else %}
-                        <li><a href="{% url 'login' %}" data-translate="nav_login">Connexion</a></li>
-                        <li><a href="{% url 'register' %}" data-translate="nav_register">Inscription</a></li>
+                        <li><a href="{% url 'login' %}">Login</a></li>
+                        <li><a href="{% url 'register' %}">Register</a></li>
                     {% endif %}
                 </ul>
             </div>
             <div class="footer-section">
-                <h3 data-translate="footer_roles">Rôles</h3>
+                <h3>User Roles</h3>
                 <ul>
-                    <li data-translate="role_author"> Auteurs</li>
-                    <li data-translate="role_reviewer"> Relecteurs</li>
-                    <li data-translate="role_editor"> Éditeurs</li>
+                    <li>📝 Authors - Submit articles</li>
+                    <li>🔍 Reviewers - Review submissions</li>
+                    <li>👔 Editors - Manage process</li>
                 </ul>
             </div>
             <div class="footer-section">
-                <h3 data-translate="footer_contact">Contact</h3>
+                <h3>Contact</h3>
                 <ul>
-                    <li> support@journalplatform.com</li>
-                    <li> <span data-translate="footer_report">Signaler un problème</span></li>
+                    <li>📧 support@journalplatform.com</li>
                 </ul>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; {% now "Y" %} Journal Platform. <span data-translate="footer_copyright">Tous droits réservés.</span></p>
+            <p>&copy; 2025 Journal Platform. All rights reserved.</p>
         </div>
     </footer>
     
-    <script src="{% static 'js/main.js' %}"></script>
-    {% block extra_js %}{% endblock %}
+    <script>
+        // Auto-dismiss alert messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                // Auto dismiss after 5 seconds (5000 milliseconds)
+                setTimeout(function() {
+                    alert.classList.add('fade-out');
+                    // Remove the alert from DOM after animation completes
+                    setTimeout(function() {
+                        if (alert.parentNode) {
+                            alert.remove();
+                        }
+                    }, 500);
+                }, 5000);
+                
+                // Also allow manual close by clicking the X button
+                const closeBtn = alert.querySelector('.alert-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        alert.classList.add('fade-out');
+                        setTimeout(function() {
+                            if (alert.parentNode) {
+                                alert.remove();
+                            }
+                        }, 500);
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -3,6 +3,8 @@
 {% block page_title %}All Reviews{% endblock %}
 
 {% block content %}
+<h2>⭐ All Reviews</h2>
+
 <div class="data-table">
     <table>
         <thead>
@@ -32,8 +34,8 @@
                 <td><strong>{{ review.get_average_score|floatformat:1|default:"-" }}</strong></td>
                 <td>{{ review.submitted_date|date:"M d, Y H:i" }}</td>
                 <td>
-                    <a href="{% url 'article_detail' review.article.pk %}" class="action-btn btn-view">View Full Review</a>
-                </td>
+                    <a href="{% url 'article_detail' review.article.pk %}" class="action-btn btn-view">View Article</a>
+                 </td>
             </tr>
             {% empty %}
             <tr>
@@ -43,4 +45,32 @@
         </tbody>
     </table>
 </div>
+
+<style>
+.action-btn {
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    text-decoration: none;
+    font-size: 0.75rem;
+}
+.btn-view { background: #3b82f6; color: white; }
+.data-table {
+    background: white;
+    border-radius: 10px;
+    overflow-x: auto;
+}
+.data-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.data-table th {
+    background: #f8fafc;
+    padding: 1rem;
+    text-align: left;
+}
+.data-table td {
+    padding: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+</style>
 {% endblock %}

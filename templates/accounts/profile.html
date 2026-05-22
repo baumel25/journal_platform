@@ -3,10 +3,10 @@
 
 {% block content %}
 <div class="card">
-    <h2>Mon Profil</h2>
+    <h2>My Profile</h2>
     
     <div style="display: flex; gap: 2rem; align-items: start; flex-wrap: wrap;">
-        <!-- Section Photo de profil -->
+        <!-- Profile Picture Section -->
         <div style="text-align: center; min-width: 250px;">
             <div style="position: relative; display: inline-block;">
                 {% if user.profile_picture %}
@@ -24,13 +24,13 @@
             </p>
         </div>
         
-        <!-- Formulaire de modification -->
+        <!-- Profile Form -->
         <div style="flex: 1;">
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 
                 <div class="form-group">
-                    <label>Nom d'utilisateur</label>
+                    <label>Username</label>
                     <input type="text" name="username" value="{{ user.username }}" class="form-control" required>
                 </div>
                 
@@ -41,27 +41,27 @@
                 
                 <div class="form-group">
                     <label>Bio</label>
-                    <textarea name="bio" rows="4" class="form-control" placeholder="Parlez-nous de vous...">{{ user.bio|default:'' }}</textarea>
+                    <textarea name="bio" rows="4" class="form-control" placeholder="Tell us about yourself...">{{ user.bio|default:'' }}</textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label>Photo de profil</label>
+                    <label>Profile Picture</label>
                     <input type="file" name="profile_picture" accept="image/*" class="form-control">
-                    <small style="color: #666;">Formats acceptés: JPG, PNG, GIF. Taille max: 5MB</small>
+                    <small style="color: #666;">Accepted formats: JPG, PNG, GIF. Max size: 5MB</small>
                     {% if user.profile_picture %}
                         <br>
                         <small>
-                            <a href="#" onclick="document.getElementById('delete-photo').style.display='block'; return false;" style="color: #ef4444;">🗑️ Supprimer la photo</a>
+                            <a href="#" onclick="document.getElementById('delete-photo').style.display='flex'; return false;" style="color: #ef4444;">Delete photo</a>
                         </small>
                     {% endif %}
                 </div>
                 
                 <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                    <button type="submit" class="btn btn-primary">💾 Mettre à jour</button>
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
                     {% if user.is_editor %}
-                        <a href="{% url 'editor_dashboard' %}" class="btn">⬅️ Retour au Panel</a>
+                        <a href="{% url 'editor_dashboard' %}" class="btn">Back to Panel</a>
                     {% else %}
-                        <a href="{% url 'dashboard' %}" class="btn">⬅️ Retour</a>
+                        <a href="{% url 'dashboard' %}" class="btn">Back to Dashboard</a>
                     {% endif %}
                 </div>
             </form>
@@ -69,41 +69,41 @@
     </div>
 </div>
 
-<!-- Statistiques du compte -->
+<!-- Account Statistics -->
 <div class="card">
-    <h3> Statistiques du compte</h3>
+    <h3>Account Statistics</h3>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
         <div>
-            <strong> Date d'inscription:</strong><br>
+            <strong>Date Joined:</strong><br>
             {{ user.date_joined|date:"d/m/Y H:i" }}
         </div>
         <div>
-            <strong> Dernière connexion:</strong><br>
-            {{ user.last_login|date:"d/m/Y H:i"|default:"Jamais" }}
+            <strong>Last Login:</strong><br>
+            {{ user.last_login|date:"d/m/Y H:i"|default:"Never" }}
         </div>
         <div>
-            <strong> Rôle:</strong><br>
+            <strong>Role:</strong><br>
             {{ user.get_role_display }}
         </div>
         <div>
-            <strong> ID utilisateur:</strong><br>
+            <strong>User ID:</strong><br>
             {{ user.id }}
         </div>
     </div>
 </div>
 
-<!-- Confirmation de suppression de photo -->
+<!-- Delete Photo Confirmation Modal -->
 {% if user.profile_picture %}
 <div id="delete-photo" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
     <div style="background: white; padding: 2rem; border-radius: 20px; max-width: 400px; margin: auto; text-align: center;">
-        <h3>Supprimer la photo ?</h3>
-        <p>Voulez-vous vraiment supprimer votre photo de profil ?</p>
+        <h3>Delete Profile Picture?</h3>
+        <p>Are you sure you want to delete your profile picture?</p>
         <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
             <form method="post" action="{% url 'delete_profile_picture' %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
             </form>
-            <button onclick="document.getElementById('delete-photo').style.display='none'" class="btn">Annuler</button>
+            <button onclick="document.getElementById('delete-photo').style.display='none'" class="btn">Cancel</button>
         </div>
     </div>
 </div>
@@ -113,6 +113,42 @@
 [data-theme="dark"] #delete-photo div {
     background: #1e293b;
     color: #e2e8f0;
+}
+.form-group {
+    margin-bottom: 1rem;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+}
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    font-size: 0.75rem;
 }
 </style>
 {% endblock %}

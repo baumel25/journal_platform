@@ -3,6 +3,8 @@
 {% block page_title %}Manage Articles{% endblock %}
 
 {% block content %}
+<h2>📄 Manage Articles</h2>
+
 <div class="data-table">
     <table>
         <thead>
@@ -21,16 +23,47 @@
                 <td>{{ article.id }}</td>
                 <td>{{ article.title|truncatechars:60 }}</td>
                 <td>{{ article.author.username }}</td>
-                <td><span class="status-badge status-{{ article.status }}">{{ article.get_status_display }}</span></td>
+                <td>{{ article.get_status_display }}</td>
                 <td>{{ article.created_at|date:"M d, Y" }}</td>
                 <td>
                     <a href="{% url 'article_detail' article.pk %}" class="action-btn btn-view">View</a>
                     <a href="{% url 'download_article_pdf' article.pk %}" class="action-btn btn-view" style="background: #dc2626;">PDF</a>
                     <a href="{% url 'editor_article_edit' article.pk %}" class="action-btn btn-edit">Edit</a>
-                </td>
+                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+<style>
+.action-btn {
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    text-decoration: none;
+    font-size: 0.75rem;
+    margin: 0 0.25rem;
+    display: inline-block;
+}
+.btn-view { background: #3b82f6; color: white; }
+.btn-edit { background: #f59e0b; color: white; }
+.data-table {
+    background: white;
+    border-radius: 10px;
+    overflow-x: auto;
+}
+.data-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.data-table th {
+    background: #f8fafc;
+    padding: 1rem;
+    text-align: left;
+}
+.data-table td {
+    padding: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+</style>
 {% endblock %}
