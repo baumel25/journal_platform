@@ -53,14 +53,12 @@ TEMPLATES = [
     },
 ]
 
-# Database Configuration - SQLite with writable directory for Render
-DATA_DIR = '/var/data'
-os.makedirs(DATA_DIR, exist_ok=True)
-
+# Database Configuration - SQLite (using a disk that Render allows)
+# Render provides a persistent disk at /opt/render/project/src
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(DATA_DIR, 'db.sqlite3'),
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
