@@ -1,77 +1,65 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-        <h2>My Articles</h2>
-        <a href="{% url 'create_article' %}" class="btn btn-primary">+ Create New Article</a>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">My Articles</h1>
+                <p class="mb-0">Manage your research submissions</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'create_article' %}" class="btn btn-light btn-sm rounded-pill px-3">
+                    <i class="bi bi-plus-lg me-1"></i>New Article
+                </a>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i>Dashboard
+                </a>
+            </div>
+        </div>
     </div>
-    
+</div>
+
+<div class="container">
     {% if articles %}
-        <div style="margin-top: 2rem;">
+        <div class="row g-4">
             {% for article in articles %}
-                <div class="article-card" style="margin-bottom: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; border-radius: 10px; transition: box-shadow 0.3s;">
-                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap;">
-                        <div>
-                            <h3 style="margin-bottom: 0.5rem;">{{ article.title }}</h3>
-                            <p style="color: #64748b; margin-bottom: 0.5rem;">
-                                Submitted: {{ article.submitted_date|date:"M d, Y"|default:"Not submitted" }}
-                            </p>
-                            <p>
-                                Status: 
-                                <span class="badge badge-{{ article.status }}">
-                                    {{ article.get_status_display }}
-                                </span>
-                            </p>
-                            {% if article.published_date %}
-                                <p style="color: #10b981; margin-top: 0.5rem;">
-                                    ✓ Published on {{ article.published_date|date:"M d, Y" }}
-                                </p>
-                            {% endif %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="article-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="status-badge status-{{ article.status }}">{{ article.get_status_display }}</span>
+                            <small class="text-muted">{{ article.created_at|date:"M d, Y" }}</small>
                         </div>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                            <a href="{% url 'article_detail' article.pk %}" class="btn btn-primary">View Details</a>
-                            {% if article.status == 'draft' %}
-                                <a href="{% url 'edit_article' article.pk %}" class="btn btn-warning">Edit</a>
-                                <a href="{% url 'submit_article' article.pk %}" class="btn btn-success">Submit</a>
-                            {% endif %}
-                            <a href="{% url 'download_article_pdf' article.pk %}" class="btn" style="background: #dc2626; color: white;">Download PDF</a>
+                        <h5 class="article-title">{{ article.title }}</h5>
+                        <p class="article-meta mb-1">
+                            <i class="bi bi-clock me-1"></i>Updated: {{ article.updated_at|date:"M d, Y" }}
+                        </p>
+                        {% if article.abstract %}
+                            <p class="article-meta small">{{ article.abstract|truncatechars:100 }}</p>
+                        {% endif %}
+                        <div class="article-actions">
+                            <a href="{% url 'article_detail' article.pk %}" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-eye me-1"></i>View Details
+                            </a>
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
     {% else %}
-        <div style="text-align: center; padding: 3rem;">
-            <p style="color: #64748b; margin-bottom: 1rem;">You haven't created any articles yet.</p>
-            <a href="{% url 'create_article' %}" class="btn btn-primary">Create Your First Article</a>
+        <div class="card-modern">
+            <div class="card-body text-center py-5">
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="bi bi-file-earmark-plus"></i></div>
+                    <h4>No Articles Yet</h4>
+                    <p>You haven't created any articles yet.</p>
+                    <a href="{% url 'create_article' %}" class="btn btn-primary rounded-pill px-4 mt-2">
+                        <i class="bi bi-plus-circle me-1"></i>Create Your First Article
+                    </a>
+                </div>
+            </div>
         </div>
     {% endif %}
 </div>
-
-<style>
-.badge {
-    padding: 0.25rem 0.5rem;
-    border-radius: 5px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-.badge-draft { background: #e2e8f0; color: #4a5568; }
-.badge-submitted { background: #fef3c7; color: #92400e; }
-.badge-under_review { background: #dbeafe; color: #1e40af; }
-.badge-approved { background: #d1fae5; color: #065f46; }
-.badge-published { background: #a7f3d0; color: #064e3b; }
-.badge-rejected { background: #fee2e2; color: #991b1b; }
-.btn {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-}
-.btn-primary { background: #667eea; color: white; }
-.btn-success { background: #10b981; color: white; }
-.btn-warning { background: #f59e0b; color: white; }
-</style>
 {% endblock %}

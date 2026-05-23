@@ -1,103 +1,146 @@
-﻿// Gestion du mode sombre/clair
-function initTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
-}
+﻿// =============================================
+// Journal Platform - Main JavaScript
+// =============================================
 
-function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    updateThemeIcon(newTheme);
-}
-
-function updateThemeIcon(theme) {
-    const icon = document.getElementById('theme-icon');
-    if (icon) {
-        icon.textContent = theme === 'light' ? '🌙' : '☀️';
-        icon.title = theme === 'light' ? 'Mode sombre' : 'Mode clair';
+// Smooth page transitions
+document.addEventListener('DOMContentLoaded', function() {
+    // Fade in animation for main content
+    const main = document.querySelector('.main-content');
+    if (main) {
+        main.style.opacity = '0';
+        requestAnimationFrame(() => {
+            main.style.transition = 'opacity 0.3s ease';
+            main.style.opacity = '1';
+        });
     }
-}
 
-// Gestion de la langue
-function initLanguage() {
-    const savedLang = localStorage.getItem('language') || 'fr';
-    setLanguage(savedLang);
-}
+    // Auto-dismiss alerts after 5 seconds
+    const alerts = document.querySelectorAll('.alert-dismissible');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
 
-function setLanguage(lang) {
-    localStorage.setItem('language', lang);
-    updateLanguageUI(lang);
-    translatePage(lang);
-}
+    // Add hover effect to table rows
+    document.querySelectorAll('.table tbody tr').forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transition = 'background 0.2s ease';
+        });
+    });
 
-function updateLanguageUI(lang) {
-    const frBtn = document.getElementById('lang-fr');
-    const enBtn = document.getElementById('lang-en');
-    
-    if (frBtn && enBtn) {
-        if (lang === 'fr') {
-            frBtn.classList.add('active');
-            enBtn.classList.remove('active');
-        } else {
-            enBtn.classList.add('active');
-            frBtn.classList.remove('active');
+    // Animate stat cards on scroll
+    const statCards = document.querySelectorAll('.stat-card');
+    if (statCards.length > 0) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }, index * 100);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        statCards.forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.4s ease';
+            observer.observe(card);
+        });
+    }
+
+    // Animate article cards on scroll
+    const articleCards = document.querySelectorAll('.article-card');
+    if (articleCards.length > 0) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }, index * 100);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        articleCards.forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.4s ease';
+            observer.observe(card);
+        });
+    }
+
+    // Animate feature cards on home page
+    const featureCards = document.querySelectorAll('.feature-card');
+    if (featureCards.length > 0) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }, index * 150);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        featureCards.forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'all 0.5s ease';
+            observer.observe(card);
+        });
+    }
+});
+
+// Smooth scroll for anchor links
+document.addEventListener('click', function(e) {
+    const target = e.target.closest('a[href^="#"]');
+    if (target) {
+        const id = target.getAttribute('href');
+        if (id !== '#') {
+            const element = document.querySelector(id);
+            if (element) {
+                e.preventDefault();
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
     }
+});
+
+// Confirmation dialog for delete actions
+function confirmAction(message) {
+    return confirm(message || 'Are you sure you want to proceed?');
 }
 
-function translatePage(lang) {
-    // Traductions
-    const translations = {
-        fr: {
-            // Navigation
-            'nav_home': 'Accueil',
-            'nav_dashboard': 'Tableau de bord',
-            'nav_new_article': 'Nouvel article',
-            'nav_my_articles': 'Mes articles',
-            'nav_pending_reviews': 'Relectures en attente',
-            'nav_admin_panel': 'Panel admin',
-            'nav_profile': 'Profil',
-            'nav_logout': 'Déconnexion',
-            'nav_login': 'Connexion',
-            'nav_register': 'Inscription',
-            'nav_welcome': 'Bienvenue',
-            
-            // Général
-            'welcome': 'Bienvenue sur Journal Platform',
-            'login': 'Se connecter',
-            'register': 'Créer un compte',
-            'logout': 'Déconnexion',
-            'profile': 'Profil',
-            'dashboard': 'Tableau de bord',
-            'save': 'Enregistrer',
-            'cancel': 'Annuler',
-            'delete': 'Supprimer',
-            'edit': 'Modifier',
-            'view': 'Voir',
-            
-            // Footer
-            'footer_platform': 'Plateforme de gestion de journal académique avec système d\'évaluation par les pairs.',
-            'footer_quick_links': 'Liens rapides',
-            'footer_roles': 'Rôles',
-            'footer_contact': 'Contact',
-            'footer_copyright': 'Tous droits réservés.',
-            
-            // Rôles
-            'role_author': 'Auteur',
-            'role_reviewer': 'Relecteur',
-            'role_editor': 'Éditeur',
-            
-            // Articles
-            'articles': 'Articles',
-            'create_article': 'Créer un article',
-            'title': 'Titre',
-            'abstract': 'Résumé',
-            'content': 'Contenu',
-            'keywords': 'Mots-clés',
-            'status': 'Statut',
+// Copy to clipboard utility
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        const toast = document.createElement('div');
+        toast.className = 'position-fixed bottom-0 end-0 p-3';
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `
+            <div class="alert alert-success alert-dismissible fade show shadow rounded-4 mb-0" role="alert">
+                <i class="bi bi-check-circle me-2"></i>Copied to clipboard!
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }).catch(() => {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+    });
+}
             'submitted': 'Soumis',
             'published': 'Publié',
             'rejected': 'Rejeté',

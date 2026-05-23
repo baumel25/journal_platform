@@ -1,24 +1,69 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="card">
-    <h2>Create New Article</h2>
-    <form method="post">
-        {% csrf_token %}
-        {% for field in form %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                    <small style="color: #666;">{{ field.help_text }}</small>
-                {% endif %}
-                {% for error in field.errors %}
-                    <small style="color: red;">{{ error }}</small>
-                {% endfor %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">Create New Article</h1>
+                <p class="mb-0">Submit your research for peer review</p>
             </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary">Save Article</button>
-        <a href="{% url 'dashboard' %}" class="btn">Cancel</a>
-    </form>
+            <a href="{% url 'dashboard' %}" class="btn btn-light btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-modern">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <div class="text-muted small mt-1">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i>Save Article
+                            </button>
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x me-1"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card-modern">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Guidelines</h6>
+                    <ul class="text-muted small" style="line-height: 1.8;">
+                        <li>Provide a clear and descriptive title</li>
+                        <li>Write a concise abstract summarizing your work</li>
+                        <li>Include relevant keywords for discoverability</li>
+                        <li>Your article will be reviewed by peers</li>
+                        <li>You can save as draft and submit later</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

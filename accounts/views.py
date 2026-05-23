@@ -9,7 +9,17 @@ from .models import CustomUser
 def home(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
-    return render(request, 'accounts/home.html')
+    
+    from articles.models import Article
+    from .models import CustomUser
+    
+    context = {
+        'total_articles': Article.objects.count(),
+        'published_articles': Article.objects.filter(status='published').count(),
+        'total_authors': CustomUser.objects.filter(role='author').count(),
+        'total_reviewers': CustomUser.objects.filter(role='reviewer').count(),
+    }
+    return render(request, 'accounts/home.html', context)
 
 def register(request):
     if request.method == 'POST':

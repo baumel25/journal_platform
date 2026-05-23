@@ -3,38 +3,60 @@
 {% block page_title %}Assign Reviewer{% endblock %}
 
 {% block content %}
-<div class="card" style="background: white; padding: 2rem; border-radius: 10px; max-width: 600px; margin: 0 auto;">
-    <h2>Assign Reviewer for Article</h2>
-    
-    <div style="margin: 1rem 0; padding: 1rem; background: #f8fafc; border-radius: 5px;">
-        <p><strong>Article Title:</strong> {{ article.title }}</p>
-        <p><strong>Author:</strong> {{ article.author.username }}</p>
-        <p><strong>Current Status:</strong> {{ article.get_status_display }}</p>
-        <p><strong>Submitted:</strong> {{ article.submitted_date|date:"M d, Y" }}</p>
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card-modern">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4"><i class="bi bi-person-plus me-2"></i>Assign Reviewer</h5>
+                
+                <!-- Article Info -->
+                <div class="p-3 mb-4" style="background: #f8f9fa; border-radius: var(--radius-md);">
+                    <h6 class="fw-bold mb-2">{{ article.title }}</h6>
+                    <div class="row g-2 small">
+                        <div class="col-md-4">
+                            <span class="text-muted">Author:</span> {{ article.author.username }}
+                        </div>
+                        <div class="col-md-4">
+                            <span class="text-muted">Status:</span> 
+                            <span class="status-badge status-{{ article.status }}">{{ article.get_status_display }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="text-muted">Submitted:</span> {{ article.submitted_date|date:"M d, Y" }}
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Select a Reviewer</label>
+                        <select name="reviewer_id" class="form-select" required>
+                            <option value="">-- Choose a reviewer --</option>
+                            {% for reviewer in reviewers %}
+                                <option value="{{ reviewer.id }}">{{ reviewer.username }} ({{ reviewer.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Assign Reviewer
+                        </button>
+                        <a href="{% url 'editor_pending' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x me-1"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+                
+                {% if not reviewers %}
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>No reviewers available!</strong> Please create reviewer accounts first.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
-    
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label>Select a Reviewer:</label>
-            <select name="reviewer_id" class="form-control" required style="width: 100%; padding: 0.5rem;">
-                <option value="">-- Choose a reviewer --</option>
-                {% for reviewer in reviewers %}
-                    <option value="{{ reviewer.id }}">{{ reviewer.username }} ({{ reviewer.email }})</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
-            <button type="submit" class="btn btn-primary">Assign Reviewer</button>
-            <a href="{% url 'editor_pending' %}" class="btn" style="background: #64748b; color: white;">Cancel</a>
-        </div>
-    </form>
-    
-    {% if not reviewers %}
-        <div style="margin-top: 1rem; padding: 1rem; background: #fefcbf; border-radius: 5px;">
-            <strong>No reviewers available!</strong> Please create reviewer accounts first.
-        </div>
-    {% endif %}
 </div>
 {% endblock %}

@@ -3,83 +3,140 @@
 {% block title %}Submit Review - {{ article.title }}{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2>Submit Review for: {{ article.title }}</h2>
-    
-    <div style="margin-bottom: 2rem; padding: 1rem; background: #f8fafc; border-radius: 5px;">
-        <p><strong>Author:</strong> {{ article.author.username }}</p>
-        <p><strong>Abstract:</strong> {{ article.abstract|truncatechars:200 }}</p>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">Submit Review</h1>
+                <p class="mb-0">{{ article.title }}</p>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i>Back
+            </a>
+        </div>
     </div>
-    
-    <form method="post">
-        {% csrf_token %}
-        
-        <h3>Review Scores (1-5)</h3>
-        <div class="form-group">
-            <label>Originality:</label>
-            <select name="originality_score" class="form-control" required>
-                <option value="">-- Select --</option>
-                {% for i in "12345"|make_list %}
-                <option value="{{ i }}" {% if form.originality_score.value|stringformat:"s" == i %}selected{% endif %}>{{ i }} - {% if i == "1" %}Very Poor{% elif i == "2" %}Poor{% elif i == "3" %}Average{% elif i == "4" %}Good{% else %}Excellent{% endif %}</option>
-                {% endfor %}
-            </select>
+</div>
+
+<div class="container">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card-modern">
+                <div class="card-body p-4">
+                    <!-- Article Summary -->
+                    <div class="p-3 mb-4" style="background: #f8f9fa; border-radius: var(--radius-md);">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ article.title }}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-person me-1"></i>{{ article.author.username }}
+                                </small>
+                            </div>
+                            <span class="status-badge status-{{ article.status }}">{{ article.get_status_display }}</span>
+                        </div>
+                        <p class="small text-muted mt-2 mb-0">{{ article.abstract|truncatechars:300 }}</p>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <h5 class="fw-bold mb-3"><i class="bi bi-star me-2 text-warning"></i>Review Scores (1-5)</h5>
+                        
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Originality</label>
+                                <select name="originality_score" class="form-select" required>
+                                    <option value="">-- Select Score --</option>
+                                    {% for i in "12345"|make_list %}
+                                    <option value="{{ i }}" {% if form.originality_score.value|stringformat:"s" == i %}selected{% endif %}>
+                                        {{ i }} - {% if i == "1" %}Very Poor{% elif i == "2" %}Poor{% elif i == "3" %}Average{% elif i == "4" %}Good{% else %}Excellent{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Significance</label>
+                                <select name="significance_score" class="form-select" required>
+                                    <option value="">-- Select Score --</option>
+                                    {% for i in "12345"|make_list %}
+                                    <option value="{{ i }}" {% if form.significance_score.value|stringformat:"s" == i %}selected{% endif %}>
+                                        {{ i }} - {% if i == "1" %}Very Poor{% elif i == "2" %}Poor{% elif i == "3" %}Average{% elif i == "4" %}Good{% else %}Excellent{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Methodology</label>
+                                <select name="methodology_score" class="form-select" required>
+                                    <option value="">-- Select Score --</option>
+                                    {% for i in "12345"|make_list %}
+                                    <option value="{{ i }}" {% if form.methodology_score.value|stringformat:"s" == i %}selected{% endif %}>
+                                        {{ i }} - {% if i == "1" %}Very Poor{% elif i == "2" %}Poor{% elif i == "3" %}Average{% elif i == "4" %}Good{% else %}Excellent{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Clarity</label>
+                                <select name="clarity_score" class="form-select" required>
+                                    <option value="">-- Select Score --</option>
+                                    {% for i in "12345"|make_list %}
+                                    <option value="{{ i }}" {% if form.clarity_score.value|stringformat:"s" == i %}selected{% endif %}>
+                                        {{ i }} - {% if i == "1" %}Very Poor{% elif i == "2" %}Poor{% elif i == "3" %}Average{% elif i == "4" %}Good{% else %}Excellent{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Recommendation</label>
+                            <select name="recommendation" class="form-select" required>
+                                <option value="">-- Select Recommendation --</option>
+                                <option value="accept" {% if form.recommendation.value == "accept" %}selected{% endif %}>✅ Accept</option>
+                                <option value="minor_revision" {% if form.recommendation.value == "minor_revision" %}selected{% endif %}>🔧 Minor Revision</option>
+                                <option value="major_revision" {% if form.recommendation.value == "major_revision" %}selected{% endif %}>🔨 Major Revision</option>
+                                <option value="reject" {% if form.recommendation.value == "reject" %}selected{% endif %}>❌ Reject</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Comments to Author <small class="text-muted">(visible to author)</small></label>
+                            <textarea name="comments_to_author" rows="6" class="form-control" required placeholder="Provide constructive feedback to the author...">{{ form.comments_to_author.value|default:"" }}</textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Comments to Editor <small class="text-muted">(confidential)</small></label>
+                            <textarea name="comments_to_editor" rows="4" class="form-control" placeholder="Private notes for the editor...">{{ form.comments_to_editor.value|default:"" }}</textarea>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send me-1"></i>Submit Review
+                            </button>
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x me-1"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
         
-        <div class="form-group">
-            <label>Significance:</label>
-            <select name="significance_score" class="form-control" required>
-                <option value="">-- Select --</option>
-                {% for i in "12345"|make_list %}
-                <option value="{{ i }}" {% if form.significance_score.value|stringformat:"s" == i %}selected{% endif %}>{{ i }} - {% if i == "1" %}Very Poor{% elif i == "2" %}Poor{% elif i == "3" %}Average{% elif i == "4" %}Good{% else %}Excellent{% endif %}</option>
-                {% endfor %}
-            </select>
+        <div class="col-lg-4">
+            <div class="card-modern">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Review Guidelines</h6>
+                    <ul class="text-muted small" style="line-height: 1.8;">
+                        <li>Rate each criterion from 1 (Very Poor) to 5 (Excellent)</li>
+                        <li>Provide detailed, constructive feedback</li>
+                        <li>Be specific about strengths and weaknesses</li>
+                        <li>Comments to editor are kept confidential</li>
+                        <li>Your review helps maintain quality standards</li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label>Methodology:</label>
-            <select name="methodology_score" class="form-control" required>
-                <option value="">-- Select --</option>
-                {% for i in "12345"|make_list %}
-                <option value="{{ i }}" {% if form.methodology_score.value|stringformat:"s" == i %}selected{% endif %}>{{ i }} - {% if i == "1" %}Very Poor{% elif i == "2" %}Poor{% elif i == "3" %}Average{% elif i == "4" %}Good{% else %}Excellent{% endif %}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label>Clarity:</label>
-            <select name="clarity_score" class="form-control" required>
-                <option value="">-- Select --</option>
-                {% for i in "12345"|make_list %}
-                <option value="{{ i }}" {% if form.clarity_score.value|stringformat:"s" == i %}selected{% endif %}>{{ i }} - {% if i == "1" %}Very Poor{% elif i == "2" %}Poor{% elif i == "3" %}Average{% elif i == "4" %}Good{% else %}Excellent{% endif %}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label>Recommendation:</label>
-            <select name="recommendation" class="form-control" required>
-                <option value="">-- Select --</option>
-                <option value="accept" {% if form.recommendation.value == "accept" %}selected{% endif %}>Accept</option>
-                <option value="minor_revision" {% if form.recommendation.value == "minor_revision" %}selected{% endif %}>Minor Revision</option>
-                <option value="major_revision" {% if form.recommendation.value == "major_revision" %}selected{% endif %}>Major Revision</option>
-                <option value="reject" {% if form.recommendation.value == "reject" %}selected{% endif %}>Reject</option>
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label>Comments to Author (visible to author):</label>
-            <textarea name="comments_to_author" rows="6" class="form-control" required placeholder="Provide constructive feedback to the author...">{{ form.comments_to_author.value|default:"" }}</textarea>
-        </div>
-        
-        <div class="form-group">
-            <label>Comments to Editor (confidential, only editor sees):</label>
-            <textarea name="comments_to_editor" rows="4" class="form-control" placeholder="Private notes for the editor...">{{ form.comments_to_editor.value|default:"" }}</textarea>
-        </div>
-        
-        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-            <button type="submit" class="btn btn-primary">Submit Review</button>
-            <a href="{% url 'dashboard' %}" class="btn">Cancel</a>
-        </div>
-    </form>
+    </div>
 </div>
 {% endblock %}

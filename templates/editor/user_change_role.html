@@ -1,31 +1,54 @@
 ﻿{% extends 'editor/base_admin.html' %}
 
-{% block page_title %}Changer le rôle{% endblock %}
+{% block page_title %}Change Role{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 500px; margin: 0 auto;">
-    <h2>Changer le rôle de: {{ target_user.username }}</h2>
-    
-    <div style="margin: 1rem 0; padding: 1rem; background: #f8fafc; border-radius: 5px;">
-        <p><strong>Rôle actuel:</strong> {{ target_user.get_role_display }}</p>
+<div class="row justify-content-center" style="margin-top: 2rem;">
+    <div class="col-md-6 col-lg-5">
+        <div class="card-modern">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    {% if target_user.profile_picture %}
+                        <img src="{{ target_user.profile_picture.url }}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                        <span style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700;">{{ target_user.username|first|upper }}</span>
+                    {% endif %}
+                    <div>
+                        <h5 class="fw-bold mb-1">Change Role</h5>
+                        <p class="text-muted small mb-0">{{ target_user.username }} - <span class="role-badge role-{{ target_user.role }}">{{ target_user.get_role_display }}</span></p>
+                    </div>
+                </div>
+                
+                <div class="p-3 mb-4" style="background: #f8f9fa; border-radius: var(--radius-md);">
+                    <p class="mb-0 small">
+                        <i class="bi bi-info-circle me-1 text-primary"></i>
+                        Current role: <strong>{{ target_user.get_role_display }}</strong>
+                    </p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">New Role</label>
+                        <select name="role" class="form-select" required>
+                            <option value="author" {% if target_user.role == 'author' %}selected{% endif %}>📝 Author</option>
+                            <option value="reviewer" {% if target_user.role == 'reviewer' %}selected{% endif %}>👁️ Reviewer</option>
+                            <option value="editor" {% if target_user.role == 'editor' %}selected{% endif %}>🛡️ Editor</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-arrow-repeat me-1"></i>Change Role
+                        </button>
+                        <a href="{% url 'editor_user_detail' target_user.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x me-1"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    
-    <form method="post">
-        {% csrf_token %}
-        
-        <div class="form-group">
-            <label>Nouveau rôle</label>
-            <select name="role" class="form-control" required>
-                <option value="author" {% if target_user.role == 'author' %}selected{% endif %}>Auteur</option>
-                <option value="reviewer" {% if target_user.role == 'reviewer' %}selected{% endif %}>Relecteur</option>
-                <option value="editor" {% if target_user.role == 'editor' %}selected{% endif %}>Éditeur</option>
-            </select>
-        </div>
-        
-        <div style="margin-top: 1rem;">
-            <button type="submit" class="btn btn-primary">Changer le rôle</button>
-            <a href="{% url 'editor_user_detail' target_user.id %}" class="btn">Annuler</a>
-        </div>
-    </form>
 </div>
 {% endblock %}

@@ -1,20 +1,63 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="card">
-    <h2>Pending Reviews</h2>
-    
-    <div class="grid">
-        {% for review in reviews %}
-            <div class="article-card">
-                <h4>{{ review.article.title }}</h4>
-                <p>Author: {{ review.article.author.username }}</p>
-                <p>Submitted: {{ review.article.submitted_date|date:"M d, Y" }}</p>
-                <a href="{% url 'submit_review' review.article.pk %}" class="btn btn-primary">Submit Review</a>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">Pending Reviews</h1>
+                <p class="mb-0">Articles awaiting your expert evaluation</p>
             </div>
-        {% empty %}
-            <p>No pending reviews at the moment.</p>
-        {% endfor %}
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
     </div>
+</div>
+
+<div class="container">
+    {% if reviews %}
+        <div class="row g-4">
+            {% for review in reviews %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="article-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="status-badge status-under_review">Pending</span>
+                            <small class="text-muted">{{ review.article.submitted_date|date:"M d, Y" }}</small>
+                        </div>
+                        <h5 class="article-title">{{ review.article.title }}</h5>
+                        <p class="article-meta mb-1">
+                            <i class="bi bi-person me-1"></i>{{ review.article.author.username }}
+                        </p>
+                        {% if review.article.abstract %}
+                            <p class="article-meta small">{{ review.article.abstract|truncatechars:120 }}</p>
+                        {% endif %}
+                        <div class="article-actions d-flex gap-2">
+                            <a href="{% url 'submit_review' review.article.pk %}" class="btn btn-primary btn-sm flex-grow-1">
+                                <i class="bi bi-pencil-square me-1"></i>Submit Review
+                            </a>
+                            <a href="{% url 'article_detail' review.article.pk %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card-modern">
+            <div class="card-body text-center py-5">
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+                    <h4>No Pending Reviews</h4>
+                    <p>You have no articles pending review at the moment. Check back later!</p>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-primary rounded-pill px-4 mt-2">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

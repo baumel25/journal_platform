@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-your-secret-key-here'
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -53,15 +53,11 @@ TEMPLATES = [
     },
 ]
 
-# Database Configuration - SQLite with persistent disk on Render
-# First, ensure the data directory exists
-DATA_DIR = '/data'
-os.makedirs(DATA_DIR, exist_ok=True)
-
+# Database Configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(DATA_DIR, 'db.sqlite3'),
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

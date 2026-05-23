@@ -1,59 +1,235 @@
 ﻿{% extends 'base.html' %}
 
 {% block content %}
-<h1>Dashboard</h1>
-
-<div class="card">
-    <h2>Welcome, {{ user.username }}!</h2>
-    <p><strong>Role:</strong> {{ user.get_role_display }}</p>
-    
-    {% if user.role == 'author' %}
-        <div style="margin-top: 1rem;">
-            <a href="{% url 'create_article' %}" class="btn btn-primary">+ Create New Article</a>
-            
-            <h3 style="margin-top: 2rem;">Your Articles</h3>
-            {% for article in my_articles %}
-                <div class="article-card" style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 5px;">
-                    <h4>{{ article.title }}</h4>
-                    <p>Status: <span class="badge badge-{{ article.status }}">{{ article.get_status_display }}</span></p>
-                    <a href="{% url 'article_detail' article.id %}" class="btn btn-primary">View Details</a>
-                </div>
-            {% empty %}
-                <p>No articles yet. <a href="{% url 'create_article' %}">Create your first article</a></p>
-            {% endfor %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">Welcome, {{ user.username }}!</h1>
+                <p class="mb-0">
+                    <span class="role-badge role-{{ user.role }} me-2">
+                        {% if user.role == 'author' %}<i class="bi bi-pencil"></i>
+                        {% elif user.role == 'reviewer' %}<i class="bi bi-eye"></i>
+                        {% else %}<i class="bi bi-shield"></i>{% endif %}
+                        {{ user.get_role_display }}
+                    </span>
+                    You are logged in as <strong>{{ user.get_role_display }}</strong>
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'profile' %}" class="btn btn-light btn-sm rounded-pill px-3">
+                    <i class="bi bi-person me-1"></i>My Profile
+                </a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="bi bi-box-arrow-right me-1"></i>Sign Out
+                </a>
+            </div>
         </div>
+    </div>
+</div>
+
+<div class="container">
+    {% if user.role == 'author' %}
+        <!-- Author Dashboard -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0"><i class="bi bi-file-earmark-text me-2 text-primary"></i>My Articles</h5>
+            <a href="{% url 'create_article' %}" class="btn btn-primary btn-sm rounded-pill px-4">
+                <i class="bi bi-plus-lg me-1"></i>New Article
+            </a>
+        </div>
+        
+        {% if my_articles %}
+            <div class="row g-4">
+                {% for article in my_articles %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="article-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="status-badge status-{{ article.status }}">{{ article.get_status_display }}</span>
+                                <small class="text-muted">{{ article.created_at|date:"M d, Y" }}</small>
+                            </div>
+                            <h5 class="article-title">{{ article.title }}</h5>
+                            <p class="article-meta mb-1">
+                                <i class="bi bi-person me-1"></i>{{ article.author.username }}
+                            </p>
+                            {% if article.abstract %}
+                                <p class="article-meta small">{{ article.abstract|truncatechars:100 }}</p>
+                            {% endif %}
+                            <div class="article-actions">
+                                <a href="{% url 'article_detail' article.pk %}" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="bi bi-eye me-1"></i>View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card-modern">
+                <div class="card-body text-center py-5">
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="bi bi-file-earmark-plus"></i></div>
+                        <h4>No Articles Yet</h4>
+                        <p>Start your research journey by creating your first article.</p>
+                        <a href="{% url 'create_article' %}" class="btn btn-primary rounded-pill px-4 mt-2">
+                            <i class="bi bi-plus-circle me-1"></i>Create Your First Article
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     
     {% elif user.role == 'reviewer' %}
-        <div style="margin-top: 1rem;">
-            <h3>Pending Reviews</h3>
-            {% for review in reviews %}
+        <!-- Reviewer Dashboard -->
+        {% with pending_reviews=reviews|dictsortreversed:"submitted_date" %}
+        <h5 class="fw-bold mb-4"><i class="bi bi-check2-square me-2 text-success"></i>Pending Reviews</h5>
+        
+        {% if pending_reviews %}
+            {% for review in pending_reviews %}
                 {% if not review.comments_to_author %}
-                <div class="article-card" style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 5px;">
-                    <h4>{{ review.article.title }}</h4>
-                    <p>Author: {{ review.article.author.username }}</p>
-                    <a href="{% url 'submit_review' review.article.id %}" class="btn btn-primary">Submit Review</a>
+                <div class="card-modern mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                            <div>
+                                <h5 class="fw-bold mb-1">{{ review.article.title }}</h5>
+                                <p class="text-muted small mb-0">
+                                    <i class="bi bi-person me-1"></i>Author: {{ review.article.author.username }}
+                                    <span class="mx-2">|</span>
+                                    <i class="bi bi-calendar me-1"></i>Submitted: {{ review.article.submitted_date|date:"M d, Y" }}
+                                </p>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'submit_review' review.article.id %}" class="btn btn-primary btn-sm rounded-pill">
+                                    <i class="bi bi-pencil-square me-1"></i>Submit Review
+                                </a>
+                                <a href="{% url 'article_detail' review.article.id %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                                    <i class="bi bi-eye me-1"></i>View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
-            {% empty %}
-                <p>No pending reviews.</p>
             {% endfor %}
-            
-            <h3>Completed Reviews</h3>
-            {% for review in reviews %}
-                {% if review.comments_to_author %}
-                <div class="article-card" style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 5px;">
-                    <h4>{{ review.article.title }}</h4>
-                    <p>Your recommendation: {{ review.get_recommendation_display }}</p>
-                    <a href="{% url 'article_detail' review.article.id %}" class="btn">View Details</a>
+        {% else %}
+            <div class="card-modern mb-4">
+                <div class="card-body text-center py-4">
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+                        <h4>No Pending Reviews</h4>
+                        <p class="mb-0">You're all caught up! Check back later for new review assignments.</p>
+                    </div>
                 </div>
-                {% endif %}
-            {% endfor %}
-        </div>
+            </div>
+        {% endif %}
+        
+        <!-- Completed Reviews -->
+        <h5 class="fw-bold mb-4 mt-5"><i class="bi bi-check-circle me-2 text-primary"></i>Completed Reviews</h5>
+        
+        {% with completed_reviews=reviews %}
+        {% if completed_reviews %}
+            <div class="row g-4">
+                {% for review in completed_reviews %}
+                    {% if review.comments_to_author %}
+                    <div class="col-md-6">
+                        <div class="article-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="status-badge
+                                    {% if review.recommendation == 'accept' %}status-approved
+                                    {% elif review.recommendation == 'reject' %}status-rejected
+                                    {% else %}status-under_review{% endif %}">
+                                    {{ review.get_recommendation_display }}
+                                </span>
+                            </div>
+                            <h5 class="article-title">{{ review.article.title }}</h5>
+                            <p class="article-meta mb-1">
+                                <i class="bi bi-star me-1"></i>Average Score: <strong>{{ review.get_average_score|floatformat:1 }}/5</strong>
+                            </p>
+                            <div class="article-actions">
+                                <a href="{% url 'article_detail' review.article.id %}" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="bi bi-eye me-1"></i>View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card-modern">
+                <div class="card-body text-center py-4">
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="bi bi-journal-check"></i></div>
+                        <h4>No Completed Reviews</h4>
+                        <p class="mb-0">Your completed reviews will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        {% endwith %}
+        {% endwith %}
     
     {% elif user.role == 'editor' %}
-        <div style="margin-top: 1rem;">
-            <a href="{% url 'editor_dashboard' %}" class="btn btn-primary">Go to Editor Panel</a>
+        <!-- Editor Dashboard (redirects to admin, but shows summary here) -->
+        <div class="card-modern mb-4">
+            <div class="card-body p-4" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: var(--radius-lg);">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="text-white fw-bold mb-2"><i class="bi bi-shield-lock me-2"></i>Editor Admin Panel</h4>
+                        <p class="text-white-50 mb-md-0">Manage articles, reviews, users, and oversee the entire peer review process.</p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <a href="{% url 'editor_dashboard' %}" class="btn btn-light rounded-pill px-4">
+                            <i class="bi bi-arrow-right me-1"></i>Go to Admin Panel
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
+        
+        <h5 class="fw-bold mb-4"><i class="bi bi-chat-quote me-2 text-warning"></i>Recent Reviews</h5>
+        
+        {% if reviews %}
+            <div class="row g-4">
+                {% for review in reviews %}
+                    <div class="col-md-6">
+                        <div class="article-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="status-badge
+                                    {% if review.recommendation == 'accept' %}status-approved
+                                    {% elif review.recommendation == 'reject' %}status-rejected
+                                    {% else %}status-under_review{% endif %}">
+                                    {{ review.get_recommendation_display }}
+                                </span>
+                                <small class="text-muted">{{ review.submitted_date|date:"M d, Y" }}</small>
+                            </div>
+                            <h5 class="article-title">{{ review.article.title }}</h5>
+                            <p class="article-meta mb-1">
+                                <i class="bi bi-person-check me-1"></i>Reviewer: {{ review.reviewer.username }}
+                            </p>
+                            <p class="article-meta mb-1">
+                                <i class="bi bi-star me-1"></i>Score: <strong>{{ review.get_average_score|floatformat:1 }}/5</strong>
+                            </p>
+                            <div class="article-actions">
+                                <a href="{% url 'article_detail' review.article.id %}" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="bi bi-eye me-1"></i>View Full Review
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card-modern">
+                <div class="card-body text-center py-4">
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="bi bi-chat-square-dots"></i></div>
+                        <h4>No Reviews Yet</h4>
+                        <p class="mb-0">Reviews submitted by reviewers will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     {% endif %}
 </div>
 {% endblock %}

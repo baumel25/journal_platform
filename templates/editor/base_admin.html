@@ -4,176 +4,356 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Editor Panel - Journal Platform{% endblock %}</title>
+    <title>{% block title %}Admin Panel - Journal Platform{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
     <style>
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: white;
+        :root {
+            --sidebar-width: 280px;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar */
+        .admin-sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #0f172a 0%, #1a1a3e 100%);
+            color: rgba(255,255,255,0.85);
             display: flex;
             flex-direction: column;
             position: fixed;
             height: 100vh;
             overflow-y: auto;
+            z-index: 1000;
         }
         
-        .main-content {
-            margin-left: 280px;
-            flex: 1;
+        .admin-sidebar .sidebar-brand {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
         }
         
-        .top-header {
-            background: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        
-        .content-area {
-            padding: 2rem;
-        }
-        
-        .nav-item {
-            padding: 0.75rem 1.5rem;
-            margin: 0.25rem 0;
-            transition: all 0.3s;
-        }
-        
-        .nav-item:hover {
-            background: rgba(255,255,255,0.1);
-        }
-        
-        .nav-item.active {
-            background: rgba(102, 126, 234, 0.8);
-            border-left: 3px solid white;
-        }
-        
-        .nav-item a {
+        .admin-sidebar .sidebar-brand a {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.2rem;
+            font-weight: 800;
             color: white;
             text-decoration: none;
+        }
+        
+        .admin-sidebar .sidebar-brand a i {
+            color: #e74c3c;
+            margin-right: 0.5rem;
+        }
+        
+        .admin-sidebar .sidebar-user {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .admin-sidebar .sidebar-user .avatar-wrap {
+            margin: 0 auto 0.75rem;
+        }
+        
+        .admin-sidebar .sidebar-user .avatar-wrap img {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.2);
+            object-fit: cover;
+        }
+        
+        .admin-sidebar .sidebar-user .avatar-wrap .avatar-initial {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.2);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            margin: 0 auto;
+        }
+        
+        .admin-sidebar .sidebar-user h6 {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+        }
+        
+        .admin-sidebar .sidebar-user small {
+            opacity: 0.6;
+        }
+        
+        .admin-sidebar .nav-menu {
+            flex: 1;
+            padding: 0.75rem 0.75rem;
+        }
+        
+        .admin-sidebar .nav-section-title {
+            padding: 0.75rem 1rem 0.25rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.4;
+            color: white;
+        }
+        
+        .admin-sidebar .nav-item {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-        }
-        
-        .sidebar-header {
-            padding: 2rem 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .sidebar-footer {
-            padding: 1.5rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            margin-top: auto;
-        }
-        
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
+            padding: 0.65rem 1rem;
+            margin: 0.15rem 0;
+            border-radius: 10px;
+            color: rgba(255,255,255,0.65);
             text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
         
-        .btn-danger {
-            background: #ef4444;
+        .admin-sidebar .nav-item:hover {
+            background: rgba(255,255,255,0.08);
             color: white;
         }
         
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 80px;
+        .admin-sidebar .nav-item.active {
+            background: rgba(102, 126, 234, 0.25);
+            color: white;
+        }
+        
+        .admin-sidebar .nav-item i {
+            width: 1.4rem;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        .admin-sidebar .sidebar-footer {
+            padding: 0.75rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        /* Main Content Area */
+        .admin-main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .admin-topbar {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .admin-topbar .page-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .admin-topbar .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .admin-topbar .topbar-user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 0.4rem 0.75rem;
+            border-radius: var(--radius-sm);
+            transition: background 0.2s;
+        }
+        
+        .admin-topbar .topbar-user:hover {
+            background: rgba(0,0,0,0.03);
+        }
+        
+        .admin-topbar .topbar-user img {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .admin-topbar .topbar-user .avatar-init {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        
+        .admin-content {
+            padding: 1.5rem 2rem 2rem;
+            flex: 1;
+        }
+        
+        /* Responsive */
+        @media (max-width: 991px) {
+            .admin-sidebar {
+                width: 72px;
             }
-            .main-content {
-                margin-left: 80px;
-            }
-            .sidebar-header h2, .sidebar-header p, .nav-item span:last-child {
+            .admin-sidebar .sidebar-brand span,
+            .admin-sidebar .sidebar-user h6,
+            .admin-sidebar .sidebar-user small,
+            .admin-sidebar .nav-item span,
+            .admin-sidebar .nav-section-title,
+            .admin-sidebar .sidebar-footer .nav-item span {
                 display: none;
+            }
+            .admin-sidebar .sidebar-brand {
+                padding: 1rem;
+                font-size: 0;
+            }
+            .admin-sidebar .nav-item {
+                justify-content: center;
+                padding: 0.65rem;
+            }
+            .admin-sidebar .nav-item i {
+                margin: 0;
+                font-size: 1.2rem;
+            }
+            .admin-sidebar .sidebar-user .avatar-wrap img,
+            .admin-sidebar .sidebar-user .avatar-wrap .avatar-initial {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            .admin-main {
+                margin-left: 72px;
+            }
+            .admin-content {
+                padding: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2>📚 Journal Admin</h2>
-            <p>Editor Panel</p>
+    <!-- Sidebar -->
+    <div class="admin-sidebar">
+        <div class="sidebar-brand">
+            <a href="{% url 'editor_dashboard' %}">
+                <i class="bi bi-journal-text"></i><span>Journal Platform</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-user">
+            <a href="{% url 'profile' %}" class="avatar-wrap d-block" style="text-decoration: none;">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                {% else %}
+                    <div class="avatar-initial">{{ user.username|first|upper }}</div>
+                {% endif %}
+            </a>
+            <h6>{{ user.username }}</h6>
+            <small>{{ user.get_role_display }}</small>
         </div>
         
         <div class="nav-menu">
-            <div class="nav-item {% if active == 'dashboard' %}active{% endif %}">
-                <a href="{% url 'editor_dashboard' %}">
-                    <span>📊</span>
-                    <span>Dashboard</span>
-                </a>
-            </div>
-            <div class="nav-item {% if active == 'articles' %}active{% endif %}">
-                <a href="{% url 'editor_articles' %}">
-                    <span>📄</span>
-                    <span>Articles</span>
-                </a>
-            </div>
-            <div class="nav-item {% if active == 'users' %}active{% endif %}">
-                <a href="{% url 'editor_users' %}">
-                    <span>👥</span>
-                    <span>Users</span>
-                </a>
-            </div>
-            <div class="nav-item {% if active == 'reviews' %}active{% endif %}">
-                <a href="{% url 'editor_reviews' %}">
-                    <span>⭐</span>
-                    <span>Reviews</span>
-                </a>
-            </div>
-            <div class="nav-item {% if active == 'pending' %}active{% endif %}">
-                <a href="{% url 'editor_pending' %}">
-                    <span>⏳</span>
-                    <span>Pending</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="{% url 'profile' %}">
-                    <span>👤</span>
-                    <span>My Profile</span>
-                </a>
-            </div>
+            <div class="nav-section-title">Main</div>
+            <a href="{% url 'editor_dashboard' %}" class="nav-item {% if active == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'editor_articles' %}" class="nav-item {% if active == 'articles' %}active{% endif %}">
+                <i class="bi bi-file-earmark-text"></i>
+                <span>Articles</span>
+            </a>
+            <a href="{% url 'editor_users' %}" class="nav-item {% if active == 'users' %}active{% endif %}">
+                <i class="bi bi-people"></i>
+                <span>Users</span>
+            </a>
+            
+            <div class="nav-section-title mt-2">Workflow</div>
+            <a href="{% url 'editor_pending' %}" class="nav-item {% if active == 'pending' %}active{% endif %}">
+                <i class="bi bi-hourglass-split"></i>
+                <span>Pending Approvals</span>
+            </a>
+            <a href="{% url 'editor_reviews' %}" class="nav-item {% if active == 'reviews' %}active{% endif %}">
+                <i class="bi bi-star"></i>
+                <span>Reviews</span>
+            </a>
         </div>
         
         <div class="sidebar-footer">
-            <div class="nav-item">
-                <a href="{% url 'dashboard' %}">
-                    <span>🏠</span>
-                    <span>Back to Site</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="{% url 'logout' %}">
-                    <span>🚪</span>
-                    <span>Logout</span>
-                </a>
-            </div>
+            <a href="{% url 'dashboard' %}" class="nav-item">
+                <i class="bi bi-house-door"></i>
+                <span>Back to Site</span>
+            </a>
+            <a href="{% url 'logout' %}" class="nav-item" style="color: rgba(239,68,68,0.7);">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Sign Out</span>
+            </a>
         </div>
     </div>
     
-    <div class="main-content">
-        <div class="top-header">
-            <h1>{% block page_title %}Dashboard{% endblock %}</h1>
-            <div class="user-info">
-                <span>Welcome, {{ user.username }}</span>
+    <!-- Main Content -->
+    <div class="admin-main">
+        <div class="admin-topbar">
+            <h1 class="page-title">{% block page_title %}Admin Dashboard{% endblock %}</h1>
+            <div class="topbar-right">
+                <a href="{% url 'dashboard' %}" class="topbar-user">
+                    <i class="bi bi-house-door"></i>
+                </a>
+                <a href="{% url 'profile' %}" class="topbar-user">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                    {% else %}
+                        <div class="avatar-init">{{ user.username|first|upper }}</div>
+                    {% endif %}
+                    <div class="d-none d-md-block">
+                        <strong style="font-size:0.85rem;">{{ user.username }}</strong>
+                        <br>
+                        <small style="font-size:0.7rem;">{{ user.get_role_display }}</small>
+                    </div>
+                </a>
             </div>
         </div>
         
-        <div class="content-area">
+        <div class="admin-content">
             {% block content %}{% endblock %}
         </div>
     </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

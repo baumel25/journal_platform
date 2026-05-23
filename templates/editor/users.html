@@ -3,124 +3,143 @@
 {% block page_title %}User Management{% endblock %}
 
 {% block content %}
-<h2>👥 User Management</h2>
-
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-number">{{ total_users }}</div>
-        <div class="stat-label">Total Users</div>
+<!-- Stats Summary -->
+<div class="row g-3 mb-4">
+    <div class="col">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_users }}</div>
+            <div class="stat-label">Total Users</div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-number">{{ authors_count }}</div>
-        <div class="stat-label">Authors</div>
+    <div class="col">
+        <div class="stat-card">
+            <div class="stat-number">{{ authors_count }}</div>
+            <div class="stat-label">Authors</div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-number">{{ reviewers_count }}</div>
-        <div class="stat-label">Reviewers</div>
+    <div class="col">
+        <div class="stat-card">
+            <div class="stat-number">{{ reviewers_count }}</div>
+            <div class="stat-label">Reviewers</div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-number">{{ editors_count }}</div>
-        <div class="stat-label">Editors</div>
+    <div class="col">
+        <div class="stat-card">
+            <div class="stat-number">{{ editors_count }}</div>
+            <div class="stat-label">Editors</div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-number">{{ active_count }}</div>
-        <div class="stat-label">Active Users</div>
+    <div class="col">
+        <div class="stat-card">
+            <div class="stat-number">{{ active_count }}</div>
+            <div class="stat-label">Active Accounts</div>
+        </div>
     </div>
 </div>
 
-<div class="data-table">
-    <table>
-        <thead>
-            <tr>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Articles</th>
-                <th>Reviews</th>
-                <th>Joined</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for u in users %}
-            <tr>
-                <td><strong>{{ u.username }}</strong></td>
-                <td>{{ u.email|default:"-" }}</td>
-                <td>{{ u.get_role_display }}</td>
-                <td>{% if u.is_active %}✓ Active{% else %}✗ Inactive{% endif %}</td>
-                <td>{{ u.articles.count }}</td>
-                <td>{{ u.reviews.count }}</td>
-                <td>{{ u.date_joined|date:"M d, Y" }}</td>
-                <td>
-                    <a href="{% url 'editor_user_detail' u.id %}" class="action-btn btn-view">View</a>
-                    <a href="{% url 'editor_user_edit' u.id %}" class="action-btn btn-edit">Edit</a>
-                    <a href="{% url 'editor_user_change_role' u.id %}" class="action-btn btn-edit">Change Role</a>
-                    <a href="{% url 'editor_user_toggle_status' u.id %}" class="action-btn {% if u.is_active %}btn-warning{% else %}btn-success{% endif %}">
-                        {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
-                    </a>
-                    {% if u.id != request.user.id %}
-                    <a href="{% url 'editor_user_delete' u.id %}" class="action-btn btn-delete">Delete</a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<!-- Search -->
+<div class="mb-3">
+    <div class="input-group" style="max-width: 400px;">
+        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+        <input type="text" id="searchInput" class="form-control" placeholder="Search by name, email or role..." onkeyup="filterUsers()">
+    </div>
 </div>
 
-<style>
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
+<!-- Users Table -->
+<div class="table-container">
+    <div class="table-header">
+        <i class="bi bi-people me-2"></i>All Users
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width:50px;"></th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Articles</th>
+                    <th>Reviews</th>
+                    <th>Joined</th>
+                    <th style="width:280px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                {% for u in users %}
+                <tr class="user-row" data-username="{{ u.username|lower }}" data-email="{{ u.email|lower }}" data-role="{{ u.role }}">
+                    <td>
+                        {% if u.profile_picture %}
+                            <img src="{{ u.profile_picture.url }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                            <span style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;">{{ u.username|first|upper }}</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ u.username }}</strong></td>
+                    <td class="text-muted">{{ u.email|default:"-" }}</td>
+                    <td>
+                        <span class="role-badge role-{{ u.role }}">
+                            {% if u.role == 'author' %}<i class="bi bi-pencil"></i>
+                            {% elif u.role == 'reviewer' %}<i class="bi bi-eye"></i>
+                            {% else %}<i class="bi bi-shield"></i>{% endif %}
+                            {{ u.get_role_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="text-success fw-semibold small"><i class="bi bi-check-circle-fill me-1"></i>Active</span>
+                        {% else %}
+                            <span class="text-danger fw-semibold small"><i class="bi bi-x-circle-fill me-1"></i>Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ u.articles.count }}</td>
+                    <td>{{ u.reviews.count }}</td>
+                    <td class="text-muted small">{{ u.date_joined|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="d-flex gap-1 flex-wrap">
+                            <a href="{% url 'editor_user_detail' u.id %}" class="action-btn action-btn-view"><i class="bi bi-eye"></i> View</a>
+                            <a href="{% url 'editor_user_edit' u.id %}" class="action-btn action-btn-edit"><i class="bi bi-pencil"></i> Edit</a>
+                            <a href="{% url 'editor_user_change_role' u.id %}" class="action-btn action-btn-edit"><i class="bi bi-arrow-repeat"></i> Role</a>
+                            {% if u.is_active %}
+                            <a href="{% url 'editor_user_toggle_status' u.id %}" class="action-btn" style="background:#fef9e7;color:#9a7d0a;" onclick="return confirm('Disable {{ u.username }}?')">
+                                <i class="bi bi-power"></i> Disable
+                            </a>
+                            {% else %}
+                            <a href="{% url 'editor_user_toggle_status' u.id %}" class="action-btn" style="background:#d4edda;color:#155724;" onclick="return confirm('Enable {{ u.username }}?')">
+                                <i class="bi bi-power"></i> Enable
+                            </a>
+                            {% endif %}
+                            {% if u.id != request.user.id and not u.is_editor %}
+                            <a href="{% url 'editor_user_delete' u.id %}" class="action-btn action-btn-delete" onclick="return confirm('Permanently delete {{ u.username }}? This action cannot be undone.')">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function filterUsers() {
+    let input = document.getElementById('searchInput');
+    let filter = input.value.toLowerCase();
+    let rows = document.getElementsByClassName('user-row');
+    
+    for (let i = 0; i < rows.length; i++) {
+        let username = rows[i].getAttribute('data-username');
+        let email = rows[i].getAttribute('data-email');
+        let role = rows[i].getAttribute('data-role');
+        
+        if (username.includes(filter) || email.includes(filter) || role.includes(filter)) {
+            rows[i].style.display = '';
+        } else {
+            rows[i].style.display = 'none';
+        }
+    }
 }
-.stat-card {
-    background: white;
-    padding: 1rem;
-    border-radius: 10px;
-    text-align: center;
-}
-.stat-number {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #667eea;
-}
-.stat-label {
-    color: #64748b;
-    font-size: 0.875rem;
-}
-.action-btn {
-    padding: 0.25rem 0.5rem;
-    border-radius: 3px;
-    text-decoration: none;
-    font-size: 0.75rem;
-    margin: 0 0.25rem;
-    display: inline-block;
-}
-.btn-view { background: #3b82f6; color: white; }
-.btn-edit { background: #f59e0b; color: white; }
-.btn-success { background: #10b981; color: white; }
-.btn-warning { background: #ef4444; color: white; }
-.btn-delete { background: #ef4444; color: white; }
-.data-table {
-    background: white;
-    border-radius: 10px;
-    overflow-x: auto;
-}
-.data-table table {
-    width: 100%;
-    border-collapse: collapse;
-}
-.data-table th {
-    background: #f8fafc;
-    padding: 1rem;
-    text-align: left;
-}
-.data-table td {
-    padding: 1rem;
-    border-top: 1px solid #e2e8f0;
-}
-</style>
+</script>
 {% endblock %}

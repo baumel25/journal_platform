@@ -1,49 +1,67 @@
 ﻿{% extends 'editor/base_admin.html' %}
 
-{% block page_title %}Modifier {{ target_user.username }}{% endblock %}
+{% block page_title %}Edit {{ target_user.username }}{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 600px; margin: 0 auto;">
-    <h2>Modifier l'utilisateur: {{ target_user.username }}</h2>
-    
-    <form method="post">
-        {% csrf_token %}
-        
-        <div class="form-group">
-            <label>Nom d'utilisateur</label>
-            <input type="text" name="username" value="{{ target_user.username }}" class="form-control" required>
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card-modern">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    {% if target_user.profile_picture %}
+                        <img src="{{ target_user.profile_picture.url }}" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                        <span style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 700;">{{ target_user.username|first|upper }}</span>
+                    {% endif %}
+                    <div>
+                        <h5 class="fw-bold mb-1">{{ target_user.username }}</h5>
+                        <span class="role-badge role-{{ target_user.role }}">{{ target_user.get_role_display }}</span>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" value="{{ target_user.username }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" value="{{ target_user.email }}" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Role</label>
+                            <select name="role" class="form-select">
+                                <option value="author" {% if target_user.role == 'author' %}selected{% endif %}>Author</option>
+                                <option value="reviewer" {% if target_user.role == 'reviewer' %}selected{% endif %}>Reviewer</option>
+                                <option value="editor" {% if target_user.role == 'editor' %}selected{% endif %}>Editor</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check">
+                                <input type="checkbox" name="is_active" id="isActive" class="form-check-input" {% if target_user.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="isActive">Account Active</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Bio</label>
+                            <textarea name="bio" rows="4" class="form-control">{{ target_user.bio|default:'' }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Save Changes
+                        </button>
+                        <a href="{% url 'editor_user_detail' target_user.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x me-1"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" name="email" value="{{ target_user.email }}" class="form-control">
-        </div>
-        
-        <div class="form-group">
-            <label>Rôle</label>
-            <select name="role" class="form-control">
-                <option value="author" {% if target_user.role == 'author' %}selected{% endif %}>Auteur</option>
-                <option value="reviewer" {% if target_user.role == 'reviewer' %}selected{% endif %}>Relecteur</option>
-                <option value="editor" {% if target_user.role == 'editor' %}selected{% endif %}>Éditeur</option>
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label>
-                <input type="checkbox" name="is_active" {% if target_user.is_active %}checked{% endif %}>
-                Compte actif
-            </label>
-        </div>
-        
-        <div class="form-group">
-            <label>Bio</label>
-            <textarea name="bio" rows="5" class="form-control">{{ target_user.bio|default:'' }}</textarea>
-        </div>
-        
-        <div style="display: flex; gap: 1rem;">
-            <button type="submit" class="btn btn-primary">Enregistrer</button>
-            <a href="{% url 'editor_user_detail' target_user.id %}" class="btn">Annuler</a>
-        </div>
-    </form>
+    </div>
 </div>
 {% endblock %}

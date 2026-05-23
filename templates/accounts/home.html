@@ -1,32 +1,121 @@
 ﻿{% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="card" style="text-align: center;">
-    <h1>Welcome to Journal Platform</h1>
-    <p style="font-size: 1.2rem; margin: 1rem 0;">A peer-reviewed academic journal management system</p>
-    
-    <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
-        {% if not user.is_authenticated %}
-            <a href="{% url 'register' %}" class="btn btn-primary">Get Started</a>
-            <a href="{% url 'login' %}" class="btn">Login</a>
-        {% else %}
-            <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Dashboard</a>
-        {% endif %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <h1>Advancing Research Together</h1>
+    <p class="hero-subtitle">
+        A modern academic journal platform connecting authors, reviewers, and editors 
+        through a streamlined peer review process.
+    </p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+        <a href="{% url 'login' %}" class="btn btn-primary btn-lg rounded-pill px-5">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+        </a>
+        <a href="{% url 'register' %}" class="btn btn-outline-primary btn-lg rounded-pill px-5">
+            <i class="bi bi-person-plus me-2"></i>Get Started
+        </a>
     </div>
-</div>
+</section>
 
-<div class="grid" style="margin-top: 2rem;">
-    <div class="card">
-        <h3>📝 For Authors</h3>
-        <p>Submit your research articles for peer review and get published in our journal.</p>
+<!-- Features -->
+<section class="container">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon" style="background: #e8f8f5; color: #27ae60;">
+                    <i class="bi bi-pencil-square"></i>
+                </div>
+                <h3>For Authors</h3>
+                <p>Submit your research articles and track their progress through the peer review process.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon" style="background: #fef9e7; color: #f39c12;">
+                    <i class="bi bi-eye"></i>
+                </div>
+                <h3>For Reviewers</h3>
+                <p>Evaluate submissions and contribute to maintaining high academic standards.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon" style="background: #eaf2f8; color: #3498db;">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h3>For Editors</h3>
+                <p>Manage the entire review workflow and make publication decisions.</p>
+            </div>
+        </div>
     </div>
-    <div class="card">
-        <h3>🔍 For Reviewers</h3>
-        <p>Review submitted articles and provide valuable feedback to authors.</p>
+</section>
+
+<!-- How It Works -->
+<section class="container">
+    <div class="steps-section">
+        <h3 class="text-center mb-4">How It Works</h3>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-3">
+                <div class="step-item">
+                    <div class="step-number">01</div>
+                    <div class="step-label">Submission</div>
+                    <div class="step-desc">Authors submit their research articles</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step-item">
+                    <div class="step-number">02</div>
+                    <div class="step-label">Review</div>
+                    <div class="step-desc">Experts evaluate the submissions</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step-item">
+                    <div class="step-number">03</div>
+                    <div class="step-label">Decision</div>
+                    <div class="step-desc">Editors make informed decisions</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step-item">
+                    <div class="step-number">04</div>
+                    <div class="step-label">Publication</div>
+                    <div class="step-desc">Accepted articles are published</div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card">
-        <h3>👔 For Editors</h3>
-        <p>Manage the review process and make final decisions on publications.</p>
+</section>
+
+<!-- Stats Section -->
+<section class="container my-5">
+    <div class="row g-4 text-center">
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_articles|default:"0" }}</div>
+                <div class="stat-label">Articles</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">{{ published_articles|default:"0" }}</div>
+                <div class="stat-label">Published</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_authors|default:"0" }}</div>
+                <div class="stat-label">Authors</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_reviewers|default:"0" }}</div>
+                <div class="stat-label">Reviewers</div>
+            </div>
+        </div>
     </div>
-</div>
+</section>
 {% endblock %}
