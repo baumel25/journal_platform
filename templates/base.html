@@ -13,7 +13,7 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
             <a class="navbar-brand" href="/">
                 <i class="bi bi-journal-text me-2"></i>Journal Platform
@@ -69,7 +69,7 @@
                                 {% endif %}
                                 <div class="d-none d-lg-block text-start">
                                     <small class="d-block fw-semibold" style="line-height:1.2;">{{ user.username }}</small>
-                                    <small class="d-block text-white-50" style="font-size:0.7rem;">{{ user.get_role_display }}</small>
+                                    <small class="d-block text-muted" style="font-size:0.7rem;">{{ user.get_role_display }}</small>
                                 </div>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">

@@ -6,6 +6,7 @@ from django.db.models import Count
 from django.contrib.auth import get_user_model
 from .models import Article, Review
 from .forms import ArticleForm, ReviewForm
+from .utils import notify_editors_new_submission, notify_author_decision
 
 User = get_user_model()
 
@@ -14,7 +15,7 @@ User = get_user_model()
 @user_passes_test(lambda u: u.is_author())
 def create_article(request):
     if request.method == 'POST':
-        form = ArticleForm(request.POST)
+        form = ArticleForm(request.POST, request.FILES)
         if form.is_valid():
             article = form.save(commit=False)
             article.author = request.user
@@ -70,7 +71,7 @@ def edit_article(request, pk):
         return redirect('article_detail', pk=article.pk)
     
     if request.method == 'POST':
-        form = ArticleForm(request.POST, instance=article)
+        form = ArticleForm(request.POST, request.FILES, instance=article)
         if form.is_valid():
             form.save()
             messages.success(request, 'Article updated successfully!')
@@ -88,7 +89,8 @@ def submit_article(request, pk):
         messages.error(request, 'Article has already been submitted.')
     else:
         article.submit_for_review()
-        messages.success(request, 'Article submitted for review!')
+        notify_editors_new_submission(article)
+        messages.success(request, 'Article submitted for review! Editors have been notified.')
     
     return redirect('article_detail', pk=article.pk)
 
@@ -142,7 +144,8 @@ def submit_review(request, pk):
 def approve_article(request, pk):
     article = get_object_or_404(Article, pk=pk)
     article.approve()
-    messages.success(request, f'Article "{article.title}" has been approved!')
+    notify_author_decision(article, 'approved')
+    messages.success(request, f'Article "{article.title}" has been approved! Author has been notified.')
     return redirect('article_detail', pk=article.pk)
 
 @login_required
@@ -151,7 +154,8 @@ def reject_article(request, pk):
     article = get_object_or_404(Article, pk=pk)
     article.status = 'rejected'
     article.save()
-    messages.warning(request, f'Article "{article.title}" has been rejected.')
+    notify_author_decision(article, 'rejected')
+    messages.warning(request, f'Article "{article.title}" has been rejected. Author has been notified.')
     return redirect('article_detail', pk=article.pk)
 
 @login_required

@@ -4,12 +4,13 @@ from .models import Article, Review
 class ArticleForm(forms.ModelForm):
     class Meta:
         model = Article
-        fields = ['title', 'abstract', 'content', 'keywords']
+        fields = ['title', 'abstract', 'content', 'keywords', 'file']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter article title'}),
             'abstract': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Write a brief abstract'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 15, 'placeholder': 'Write your article content here'}),
             'keywords': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., python, django, web development'}),
+            'file': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.doc,.docx'}),
         }
 
 class ReviewForm(forms.ModelForm):

@@ -4,7 +4,7 @@ from .models import CustomUser
 
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
-    role = forms.ChoiceField(choices=CustomUser.ROLE_CHOICES)
+    role = forms.ChoiceField(choices=[('author', 'Author'), ('reviewer', 'Reviewer')])
     
     class Meta:
         model = CustomUser
@@ -21,9 +21,10 @@ class RegistrationForm(UserCreationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'bio', 'profile_picture']
+        fields = ['username', 'email', 'bio', 'profile_picture', 'whatsapp']
         widgets = {
-            'bio': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Parlez-nous de vous...'}),
+            'bio': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Tell us about yourself...'}),
+            'whatsapp': forms.TextInput(attrs={'placeholder': '+2250123456789'}),
         }
     
     def clean_profile_picture(self):

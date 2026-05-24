@@ -66,6 +66,27 @@
                 </div>
             </div>
             
+            {% if article.file %}
+            <!-- File -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark me-2 text-primary"></i>Document</h5>
+                    <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                        <div class="me-3" style="width: 48px; height: 48px; background: rgba(79,70,229,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                            <i class="bi bi-file-earmark-text text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <strong class="d-block">{{ article.file.name|cut:'article_files/' }}</strong>
+                            <small class="text-muted">{{ article.file.size|filesizeformat }}</small>
+                        </div>
+                        <a href="{{ article.file.url }}" target="_blank" class="btn btn-primary btn-sm rounded-pill px-3">
+                            <i class="bi bi-download me-1"></i>Download
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
             <!-- Abstract -->
             <div class="card-modern mb-4">
                 <div class="card-body p-4">

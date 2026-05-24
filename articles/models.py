@@ -17,6 +17,7 @@ class Article(models.Model):
     abstract = models.TextField()
     content = models.TextField()
     keywords = models.CharField(max_length=200, blank=True)
+    file = models.FileField(upload_to='article_files/', blank=True, null=True, help_text='Upload your document (PDF, DOC, DOCX)')
     
     # Relationships
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='articles')
