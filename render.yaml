@@ -15,7 +15,16 @@
         value: ".onrender.com"
       - key: BASE_URL
         value: "https://journal-platform.onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: journal-db
+          property: connectionString
       - key: EMAIL_HOST_USER
         sync: false
       - key: EMAIL_HOST_PASSWORD
         sync: false
+
+databases:
+  - name: journal-db
+    databaseName: journal
+    plan: free

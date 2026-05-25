@@ -1,5 +1,5 @@
 ﻿// =============================================
-// Journal Platform - Main JavaScript
+// Instructor: Journal of Computer Science and Applications - Main JavaScript
 // =============================================
 
 // Smooth page transitions
@@ -141,6 +141,10 @@ function copyToClipboard(text) {
         document.body.removeChild(textarea);
     });
 }
+
+// ─── Translations ───────────────────────────────────────────────────────────
+const translations = {
+    fr: {
             'submitted': 'Soumis',
             'published': 'Publié',
             'rejected': 'Rejeté',
@@ -176,7 +180,7 @@ function copyToClipboard(text) {
             'nav_register': 'Register',
             'nav_welcome': 'Welcome',
             
-            'welcome': 'Welcome to Journal Platform',
+            'welcome': 'Welcome to Instructor: Journal of Computer Science and Applications',
             'login': 'Login',
             'register': 'Register',
             'logout': 'Logout',
@@ -226,6 +230,10 @@ function copyToClipboard(text) {
         }
     };
     
+    // ─── Language & Theme Initialization ────────────────────────────────────
+    function initLanguage(lang) {
+    lang = lang || localStorage.getItem('language') || 'en';
+    
     // Traduire tous les éléments avec l'attribut data-translate
     document.querySelectorAll('[data-translate]').forEach(element => {
         const key = element.getAttribute('data-translate');
@@ -242,6 +250,14 @@ function copyToClipboard(text) {
     const titleKey = document.querySelector('title')?.getAttribute('data-translate');
     if (titleKey && translations[lang][titleKey]) {
         document.title = translations[lang][titleKey];
+    }
+}
+
+// ─── Theme Toggle ───────────────────────────────────────────────────────────
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
     }
 }
 

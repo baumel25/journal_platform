@@ -47,3 +47,5 @@ zopfli==0.4.1
 django-otp==1.7.0
 qrcode==8.2
 colorama==0.4.6
+dj-database-url==3.1.2
+psycopg2-binary==2.9.12

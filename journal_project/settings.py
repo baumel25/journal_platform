@@ -1,6 +1,7 @@
 ﻿import os
 from pathlib import Path
 from django.core.management.utils import get_random_secret_key
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -64,12 +65,19 @@ TEMPLATES = [
 ]
 
 # Database Configuration
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Uses PostgreSQL in production (via DATABASE_URL env var) or SQLite locally
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
