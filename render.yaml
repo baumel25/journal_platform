@@ -5,7 +5,17 @@
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn journal_project.wsgi:application
     envVars:
-      - key: DJANGO_SETTINGS_MODULE
-        value: journal_project.settings_production
       - key: PYTHON_VERSION
-        value: 3.10.12
+        value: 3.12.0
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: BASE_URL
+        value: "https://journal-platform.onrender.com"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false

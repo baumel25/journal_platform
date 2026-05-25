@@ -1,18 +1,24 @@
 ﻿import os
 from pathlib import Path
+from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-your-secret-key-here'
+# Production settings from environment variables
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', get_random_secret_key())
 
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    'journal-platform-513m.onrender.com',
-    '.onrender.com',
-]
+ALLOWED_HOSTS_ENV = os.environ.get('DJANGO_ALLOWED_HOSTS', '')
+if ALLOWED_HOSTS_ENV:
+    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
+else:
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        'journal-platform-513m.onrender.com',
+        '.onrender.com',
+    ]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -109,7 +115,15 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'christianyonta73@gmail.com'
-EMAIL_HOST_PASSWORD = 'hnzihygwfhghsqei'
-DEFAULT_FROM_EMAIL = 'Instructor: Journal of Computer Science and Applications <christianyonta73@gmail.com>'
-BASE_URL = 'http://localhost:8000'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'christianyonta73@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'hnzihygwfhghsqei')
+DEFAULT_FROM_EMAIL = f'Instructor: Journal of Computer Science and Applications <{EMAIL_HOST_USER}>'
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000')
+
+# CSRF Trusted Origins (needed for Render proxy)
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS = [BASE_URL]
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
