@@ -1,26 +1,26 @@
 ﻿/* ============================================
-   Journal Platform - Professional Theme
+   Instructor: Journal of Computer Science and Applications - Professional Theme
    ============================================ */
 
 /* Variables */
 :root {
-    --primary: #4f46e5;
-    --primary-light: #6366f1;
-    --primary-dark: #3730a3;
-    --accent: #f59e0b;
-    --accent-light: #fbbf24;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --info: #3b82f6;
+    --primary: #1a1a2e;
+    --primary-light: #2d2d5e;
+    --primary-dark: #0f0f1e;
+    --accent: #c0392b;
+    --accent-light: #e74c3c;
+    --success: #27ae60;
+    --warning: #f39c12;
+    --danger: #c0392b;
+    --info: #3498db;
     
-    --bg-body: #f8fafc;
+    --bg-body: #f4f6f9;
     --bg-card: #ffffff;
     --bg-nav: rgba(255, 255, 255, 0.95);
     
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
+    --text-primary: #1a1a2e;
+    --text-secondary: #4a5568;
+    --text-muted: #8899aa;
     
     --border-color: #e2e8f0;
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
@@ -73,15 +73,11 @@ a { text-decoration: none; }
     font-family: var(--font-serif);
     font-weight: 800;
     font-size: 1.4rem;
-    background: linear-gradient(135deg, var(--primary), #7c3aed);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--primary) !important;
     letter-spacing: -0.5px;
 }
 
 .navbar-brand i {
-    -webkit-text-fill-color: var(--accent);
     color: var(--accent);
 }
 
@@ -104,7 +100,7 @@ a { text-decoration: none; }
 }
 
 .navbar .btn-light {
-    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    background: var(--primary);
     color: white !important;
     border: none;
     font-weight: 600;
@@ -114,9 +110,9 @@ a { text-decoration: none; }
 }
 
 .navbar .btn-light:hover {
-    background: linear-gradient(135deg, var(--primary-light), #8b5cf6);
+    background: var(--primary-light);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+    box-shadow: 0 4px 12px rgba(26, 26, 46, 0.3);
 }
 
 /* User avatar in nav */
@@ -132,7 +128,7 @@ a { text-decoration: none; }
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    background: var(--primary);
     color: white;
     font-weight: 700;
     font-size: 0.85rem;
@@ -217,7 +213,7 @@ a { text-decoration: none; }
    Page Header
    ============================================ */
 .page-header {
-    background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 50%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     padding: 3.5rem 0 3rem;
     margin-bottom: 2rem;
     position: relative;
@@ -231,6 +227,7 @@ a { text-decoration: none; }
     left: 0;
     right: 0;
     bottom: 0;
+    pointer-events: none;
     background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
@@ -241,6 +238,7 @@ a { text-decoration: none; }
     right: -20%;
     width: 400px;
     height: 400px;
+    pointer-events: none;
     background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
     border-radius: 50%;
 }
@@ -292,10 +290,7 @@ a { text-decoration: none; }
 .stat-card .stat-number {
     font-size: 2rem;
     font-weight: 800;
-    background: linear-gradient(135deg, var(--primary), #7c3aed);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--primary);
     line-height: 1.2;
 }
 
@@ -319,90 +314,74 @@ a { text-decoration: none; }
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary), #7c3aed);
-    border-color: transparent;
-    color: white;
+    background: var(--primary);
+    border-color: var(--primary);
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, var(--primary-light), #8b5cf6);
-    border-color: transparent;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
-    color: white;
-}
-
-.btn-primary:active {
-    transform: translateY(0);
+    background: var(--primary-light);
+    border-color: var(--primary-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26, 26, 46, 0.25);
 }
 
 .btn-outline-primary {
     color: var(--primary);
     border-color: var(--primary);
-    background: transparent;
 }
 
 .btn-outline-primary:hover {
-    background: linear-gradient(135deg, var(--primary), #7c3aed);
-    border-color: transparent;
+    background: var(--primary);
+    border-color: var(--primary);
     color: white;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
 .btn-success {
-    background: linear-gradient(135deg, var(--success), #059669);
-    border-color: transparent;
-    color: white;
+    background: var(--success);
+    border-color: var(--success);
 }
 
 .btn-success:hover {
-    background: linear-gradient(135deg, #059669, #047857);
-    border-color: transparent;
+    background: #219a52;
+    border-color: #219a52;
     color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .btn-warning {
-    background: linear-gradient(135deg, var(--warning), #d97706);
-    border-color: transparent;
+    background: var(--warning);
+    border-color: var(--warning);
     color: white;
 }
 
 .btn-warning:hover {
-    background: linear-gradient(135deg, #d97706, #b45309);
-    border-color: transparent;
+    background: #d68910;
+    border-color: #d68910;
     color: white;
-    transform: translateY(-1px);
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, var(--danger), #dc2626);
-    border-color: transparent;
-    color: white;
+    background: var(--danger);
+    border-color: var(--danger);
 }
 
 .btn-danger:hover {
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
-    border-color: transparent;
+    background: #a93226;
+    border-color: #a93226;
     color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .btn-accent {
-    background: linear-gradient(135deg, var(--accent), #d97706);
-    border-color: transparent;
+    background: var(--accent);
+    border-color: var(--accent);
     color: white;
 }
 
 .btn-accent:hover {
-    background: linear-gradient(135deg, var(--accent-light), #f59e0b);
-    border-color: transparent;
+    background: var(--accent-light);
+    border-color: var(--accent-light);
     color: white;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .btn-sm {
@@ -719,10 +698,7 @@ textarea.form-control {
     font-family: var(--font-serif);
     font-size: 3.2rem;
     font-weight: 800;
-    background: linear-gradient(135deg, var(--primary), #7c3aed, #a855f7);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--primary);
     margin-bottom: 1rem;
     letter-spacing: -1px;
 }
@@ -777,7 +753,7 @@ textarea.form-control {
 }
 
 .steps-section {
-    background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+    background: var(--primary);
     border-radius: var(--radius-xl);
     padding: 3rem;
     margin-top: 2rem;
@@ -792,6 +768,7 @@ textarea.form-control {
     left: 0;
     right: 0;
     bottom: 0;
+    pointer-events: none;
     background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
@@ -802,6 +779,7 @@ textarea.form-control {
     right: -10%;
     width: 300px;
     height: 300px;
+    pointer-events: none;
     background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
     border-radius: 50%;
 }
@@ -930,7 +908,7 @@ textarea.form-control {
 
 .profile-cover {
     height: 180px;
-    background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 50%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     position: relative;
 }
 
@@ -941,6 +919,7 @@ textarea.form-control {
     right: -10%;
     width: 300px;
     height: 300px;
+    pointer-events: none;
     background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
     border-radius: 50%;
 }
@@ -970,7 +949,7 @@ textarea.form-control {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    background: var(--primary);
     color: white;
     font-family: var(--font-serif);
     font-size: 3rem;
@@ -1058,14 +1037,14 @@ textarea.form-control {
    Utilities
    ============================================ */
 .text-gradient {
-    background: linear-gradient(135deg, var(--primary), #7c3aed, #a855f7);
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
 .bg-gradient-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 50%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
 }
 
 /* Empty state */
