@@ -13,7 +13,7 @@ def notify_editors_new_submission(article):
     if not editor_emails:
         return
     
-    subject = f'[Journal Platform] New Article Submitted: {article.title}'
+    subject = f'[Instructor: Journal of Computer Science and Applications] New Article Submitted: {article.title}'
     message = f"""
 A new article has been submitted for review.
 
@@ -34,7 +34,7 @@ def notify_author_decision(article, decision):
         return
     
     if decision == 'approved':
-        subject = f'[Journal Platform] Article Approved: {article.title}'
+        subject = f'[Instructor: Journal of Computer Science and Applications] Article Approved: {article.title}'
         message = f"""
 Congratulations! Your article has been approved for publication.
 
@@ -45,7 +45,7 @@ Your article will be published soon. You can view it here:
 {settings.BASE_URL or 'http://localhost:8000'}{reverse('article_detail', args=[article.pk])}
 """
     elif decision == 'rejected':
-        subject = f'[Journal Platform] Article Update: {article.title}'
+        subject = f'[Instructor: Journal of Computer Science and Applications] Article Update: {article.title}'
         message = f"""
 Your article has been reviewed, and unfortunately it has been rejected.
 

@@ -744,7 +744,7 @@ def download_article_pdf_simple(request, pk):
     story = []
     
     # Titre principal
-    story.append(Paragraph("Journal Platform", title_style))
+    story.append(Paragraph("Instructor: Journal of Computer Science and Applications", title_style))
     story.append(Spacer(1, 0.5*cm))
     
     # Titre de l'article

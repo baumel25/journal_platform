@@ -139,6 +139,35 @@
                 </div>
             </div>
             
+            <!-- Two-Factor Authentication -->
+            <div class="card-modern mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-shield-lock me-2"></i>Two-Factor Authentication</h5>
+                    <div class="d-flex align-items-center p-3 bg-light rounded-3 mb-3">
+                        <div class="me-3" style="width: 36px; height: 36px; background: {% if has_2fa %}rgba(37,211,102,0.1){% else %}rgba(107,114,128,0.1){% endif %}; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi {% if has_2fa %}bi-shield-check text-success{% else %}bi-shield text-muted{% endif %}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <small class="text-muted d-block">Status</small>
+                            {% if has_2fa %}
+                                <span class="fw-semibold text-success">Enabled</span>
+                            {% else %}
+                                <span class="fw-semibold text-muted">Disabled</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if has_2fa %}
+                        <a href="{% url 'disable_2fa' %}" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-shield-slash me-2"></i>Disable 2FA
+                        </a>
+                    {% else %}
+                        <a href="{% url 'enable_2fa' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-shield-plus me-2"></i>Enable 2FA
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Contact Info -->
             <div class="card-modern mb-4">
                 <div class="card-body">
