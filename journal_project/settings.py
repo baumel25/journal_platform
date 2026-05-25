@@ -1,5 +1,6 @@
 ﻿import os
 from pathlib import Path
+from email.headerregistry import Address
 from django.core.management.utils import get_random_secret_key
 import dj_database_url
 
@@ -125,7 +126,10 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'christianyonta73@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'hnzihygwfhghsqei')
-DEFAULT_FROM_EMAIL = f'Instructor: Journal of Computer Science and Applications <{EMAIL_HOST_USER}>'
+DEFAULT_FROM_EMAIL = str(Address(
+    display_name='Instructor: Journal of Computer Science and Applications',
+    addr_spec=EMAIL_HOST_USER
+))
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000')
 
 # CSRF Trusted Origins (needed for Render proxy)
