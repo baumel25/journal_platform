@@ -1,12 +1,12 @@
 ﻿/* ============================================
-   Journal Platform - Professional Theme
+   Instructor: Journal of Computer Science and Applications - Professional Theme
    ============================================ */
 
 /* Variables */
 :root {
-    --primary: #1a365d;
-    --primary-light: #2d5a9e;
-    --primary-dark: #0f1f3a;
+    --primary: #1a1a2e;
+    --primary-light: #2d2d5e;
+    --primary-dark: #0f0f1e;
     --accent: #c0392b;
     --accent-light: #e74c3c;
     --success: #27ae60;
@@ -112,7 +112,7 @@ a { text-decoration: none; }
 .navbar .btn-light:hover {
     background: var(--primary-light);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(26, 54, 93, 0.3);
+    box-shadow: 0 4px 12px rgba(26, 26, 46, 0.3);
 }
 
 /* User avatar in nav */
@@ -322,7 +322,7 @@ a { text-decoration: none; }
     background: var(--primary-light);
     border-color: var(--primary-light);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(26, 54, 93, 0.25);
+    box-shadow: 0 4px 12px rgba(26, 26, 46, 0.25);
 }
 
 .btn-outline-primary {
