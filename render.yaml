@@ -2,8 +2,8 @@
   - type: web
     name: journal-platform
     runtime: python
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput --clear && python manage.py migrate
-    startCommand: gunicorn journal_project.wsgi:application
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput --clear
+    startCommand: python manage.py migrate --noinput && gunicorn journal_project.wsgi:application
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.0
