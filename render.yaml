@@ -3,7 +3,7 @@
     name: journal-platform
     runtime: python
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput --clear
-    startCommand: python manage.py migrate --noinput && gunicorn journal_project.wsgi:application
+    startCommand: bash startup.sh
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.0
