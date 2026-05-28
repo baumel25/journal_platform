@@ -9,7 +9,7 @@
         <div class="profile-avatar-section d-flex align-items-end gap-4">
             <div class="flex-shrink-0">
                 {% if user.profile_picture %}
-                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-avatar">
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-avatar" loading="lazy">
                 {% else %}
                     <div class="profile-avatar-initial">{{ user.username|first|upper }}</div>
                 {% endif %}

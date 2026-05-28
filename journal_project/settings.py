@@ -1,8 +1,6 @@
 ﻿import os
 from pathlib import Path
-from email.headerregistry import Address
 from django.core.management.utils import get_random_secret_key
-import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,15 +27,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_otp',
-    'django_otp.plugins.otp_totp',
-    'django_otp.plugins.otp_static',
     'articles',
     'accounts',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -66,17 +64,22 @@ TEMPLATES = [
 ]
 
 # Database Configuration
-# Uses PostgreSQL in production (via DATABASE_URL env var) or SQLite locally
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
-    }
-else:
+if DEBUG:
+    # Local development: use local SQLite file
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    # Production (Render): use persistent disk
+    DATA_DIR = '/data'
+    os.makedirs(DATA_DIR, exist_ok=True)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(DATA_DIR, 'db.sqlite3'),
         }
     }
 
@@ -95,16 +98,28 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Whitenoise cache and compression settings
+WHITENOISE_MAX_AGE = 31536000  # 1 year cache for static files
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = DEBUG
+WHITENOISE_ETAG = True
+WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ()  # Compress everything including images
+
+# Media files optimization
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Upload limits (forms have their own per-field validation)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880
+DATA_UPLOAD_MAX_NUMBER_FILES = 5
+DATA_UPLOAD_MAX_FILE_SIZE = 5242880  # 5MB global max (form validates individually)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-DATA_UPLOAD_MAX_NUMBER_FILES = 10
-DATA_UPLOAD_MAX_FILE_SIZE = 5242880
 
 ALLOWED_PROFILE_PIC_TYPES = ['jpg', 'jpeg', 'png', 'gif', 'svg']
 
@@ -126,13 +141,10 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'christianyonta73@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'hnzihygwfhghsqei')
-DEFAULT_FROM_EMAIL = str(Address(
-    display_name='Instructor: Journal of Computer Science and Applications',
-    addr_spec=EMAIL_HOST_USER
-))
+DEFAULT_FROM_EMAIL = f'Instructor: Journal of Computer Science and Applications <{EMAIL_HOST_USER}>'
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000')
 
-# CSRF Trusted Origins (needed for Render proxy)
+# CSRF Trusted Origins (needed for Render's proxy)
 if not DEBUG:
     CSRF_TRUSTED_ORIGINS = [BASE_URL]
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

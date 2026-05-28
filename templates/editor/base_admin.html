@@ -277,7 +277,7 @@
         <div class="sidebar-user">
             <a href="{% url 'profile' %}" class="avatar-wrap d-block" style="text-decoration: none;">
                 {% if user.profile_picture %}
-                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" loading="lazy">
                 {% else %}
                     <div class="avatar-initial">{{ user.username|first|upper }}</div>
                 {% endif %}
@@ -334,7 +334,7 @@
                 </a>
                 <a href="{% url 'profile' %}" class="topbar-user">
                     {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" loading="lazy">
                     {% else %}
                         <div class="avatar-init">{{ user.username|first|upper }}</div>
                     {% endif %}
