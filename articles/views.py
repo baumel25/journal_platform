@@ -45,7 +45,7 @@ def article_detail(request, pk):
         messages.error(request, 'You do not have permission to view this article.')
         return redirect('dashboard')
     
-    reviews = article.reviews.all()
+    reviews = article.reviews.select_related('reviewer').all()
     
     # Check if the current user (reviewer) has already submitted a review
     has_submitted_review = False
@@ -199,7 +199,7 @@ def editor_dashboard(request):
 @login_required
 @user_passes_test(lambda u: u.is_editor())
 def editor_articles(request):
-    articles = Article.objects.all().order_by('-created_at')
+    articles = Article.objects.select_related('author').all().order_by('-created_at')
     context = {
         'active': 'articles',
         'articles': articles,
@@ -209,7 +209,7 @@ def editor_articles(request):
 @login_required
 @user_passes_test(lambda u: u.is_editor())
 def editor_reviews(request):
-    reviews = Review.objects.exclude(comments_to_author='').order_by('-submitted_date')
+    reviews = Review.objects.select_related('article', 'reviewer').exclude(comments_to_author='').order_by('-submitted_date')
     context = {
         'active': 'reviews',
         'reviews': reviews,
@@ -219,8 +219,8 @@ def editor_reviews(request):
 @login_required
 @user_passes_test(lambda u: u.is_editor())
 def editor_pending(request):
-    pending_articles = Article.objects.filter(status='submitted')
-    under_review_articles = Article.objects.filter(status='under_review')
+    pending_articles = Article.objects.select_related('author').filter(status='submitted')
+    under_review_articles = Article.objects.select_related('author').filter(status='under_review')
     context = {
         'active': 'pending',
         'pending_articles': pending_articles,
@@ -328,7 +328,7 @@ def editor_user_detail(request, pk):
     """View user details"""
     target_user = get_object_or_404(User, pk=pk)
     user_articles = target_user.articles.all()
-    user_reviews = target_user.reviews.all()
+    user_reviews = target_user.reviews.select_related('article').all()
     
     context = {
         'active': 'users',
@@ -421,269 +421,17 @@ def editor_user_change_role(request, pk):
         'target_user': target_user,
     }
     return render(request, 'editor/user_change_role.html', context)
-# Ajouter ces fonctions à articles/views.py (à la fin du fichier)
-
-@login_required
-@user_passes_test(lambda u: u.is_editor())
-def editor_users(request):
-    """Gérer tous les utilisateurs"""
-    users = User.objects.all().order_by('-date_joined')
-    
-    # Statistiques
-    total_users = users.count()
-    authors = users.filter(role='author').count()
-    reviewers = users.filter(role='reviewer').count()
-    editors = users.filter(role='editor').count()
-    active_users = users.filter(is_active=True).count()
-    
-    context = {
-        'active': 'users',
-        'users': users,
-        'total_users': total_users,
-        'authors_count': authors,
-        'reviewers_count': reviewers,
-        'editors_count': editors,
-        'active_count': active_users,
-    }
-    return render(request, 'editor/users.html', context)
-
-@login_required
-@user_passes_test(lambda u: u.is_editor())
-def editor_user_detail(request, pk):
-    """Voir les détails d'un utilisateur"""
-    target_user = get_object_or_404(User, pk=pk)
-    user_articles = target_user.articles.all()
-    user_reviews = target_user.reviews.all()
-    
-    context = {
-        'active': 'users',
-        'target_user': target_user,
-        'articles': user_articles,
-        'reviews': user_reviews,
-    }
-    return render(request, 'editor/user_detail.html', context)
-
-@login_required
-@user_passes_test(lambda u: u.is_editor())
-def editor_user_edit(request, pk):
-    """Modifier un utilisateur"""
-    target_user = get_object_or_404(User, pk=pk)
-    
-    if request.method == 'POST':
-        target_user.username = request.POST.get('username')
-        target_user.email = request.POST.get('email')
-        target_user.role = request.POST.get('role')
-        target_user.is_active = request.POST.get('is_active') == 'on'
-        target_user.bio = request.POST.get('bio', '')
-        target_user.save()
-        
-        messages.success(request, f'L\'utilisateur {target_user.username} a été mis à jour!')
-        return redirect('editor_user_detail', pk=target_user.pk)
-    
-    context = {
-        'active': 'users',
-        'target_user': target_user,
-    }
-    return render(request, 'editor/user_edit.html', context)
-
-@login_required
-@user_passes_test(lambda u: u.is_editor())
-def editor_user_delete(request, pk):
-    """Supprimer un utilisateur"""
-    target_user = get_object_or_404(User, pk=pk)
-    
-    # Empêcher la suppression de soi-même
-    if target_user == request.user:
-        messages.error(request, 'Vous ne pouvez pas supprimer votre propre compte!')
-        return redirect('editor_users')
-    
-    if request.method == 'POST':
-        username = target_user.username
-        target_user.delete()
-        messages.success(request, f'L\'utilisateur {username} a été supprimé!')
-        return redirect('editor_users')
-    
-    context = {
-        'active': 'users',
-        'target_user': target_user,
-    }
-    return render(request, 'editor/user_delete.html', context)
-
-@login_required
-@user_passes_test(lambda u: u.is_editor())
-def editor_user_toggle_status(request, pk):
-    """Activer/Désactiver un utilisateur"""
-    target_user = get_object_or_404(User, pk=pk)
-    
-    if target_user != request.user:
-        target_user.is_active = not target_user.is_active
-        target_user.save()
-        status = "activé" if target_user.is_active else "désactivé"
-        messages.success(request, f'L\'utilisateur {target_user.username} a été {status}!')
-    else:
-        messages.error(request, 'Vous ne pouvez pas modifier votre propre statut!')
-    
-    return redirect('editor_users')
-
-@login_required
-@user_passes_test(lambda u: u.is_editor())
-def editor_user_change_role(request, pk):
-    """Changer le rôle d'un utilisateur"""
-    target_user = get_object_or_404(User, pk=pk)
-    
-    if request.method == 'POST':
-        new_role = request.POST.get('role')
-        if new_role in ['author', 'reviewer', 'editor']:
-            old_role = target_user.role
-            target_user.role = new_role
-            target_user.save()
-            messages.success(request, f'Rôle de {target_user.username} changé de {old_role} à {new_role}!')
-        else:
-            messages.error(request, 'Rôle invalide!')
-        
-        return redirect('editor_user_detail', pk=target_user.pk)
-    
-    context = {
-        'target_user': target_user,
-    }
-    return render(request, 'editor/user_change_role.html', context)
-
-# ========== GESTION DES UTILISATEURS ==========
-
-@login_required
-@user_passes_test(lambda u: u.is_editor())
-def editor_users(request):
-    """Gérer tous les utilisateurs"""
-    users = User.objects.all().order_by('-date_joined')
-    
-    total_users = users.count()
-    authors = users.filter(role='author').count()
-    reviewers = users.filter(role='reviewer').count()
-    editors = users.filter(role='editor').count()
-    active_users = users.filter(is_active=True).count()
-    
-    context = {
-        'active': 'users',
-        'users': users,
-        'total_users': total_users,
-        'authors_count': authors,
-        'reviewers_count': reviewers,
-        'editors_count': editors,
-        'active_count': active_users,
-    }
-    return render(request, 'editor/users.html', context)
-
-@login_required
-@user_passes_test(lambda u: u.is_editor())
-def editor_user_detail(request, pk):
-    """Voir les détails d'un utilisateur"""
-    target_user = get_object_or_404(User, pk=pk)
-    user_articles = target_user.articles.all()
-    user_reviews = target_user.reviews.all()
-    
-    context = {
-        'active': 'users',
-        'target_user': target_user,
-        'articles': user_articles,
-        'reviews': user_reviews,
-    }
-    return render(request, 'editor/user_detail.html', context)
-
-@login_required
-@user_passes_test(lambda u: u.is_editor())
-def editor_user_edit(request, pk):
-    """Modifier un utilisateur"""
-    target_user = get_object_or_404(User, pk=pk)
-    
-    if request.method == 'POST':
-        target_user.username = request.POST.get('username')
-        target_user.email = request.POST.get('email')
-        target_user.role = request.POST.get('role')
-        target_user.is_active = request.POST.get('is_active') == 'on'
-        target_user.bio = request.POST.get('bio', '')
-        target_user.save()
-        
-        messages.success(request, f'L\'utilisateur {target_user.username} a été mis à jour!')
-        return redirect('editor_user_detail', pk=target_user.pk)
-    
-    context = {
-        'active': 'users',
-        'target_user': target_user,
-    }
-    return render(request, 'editor/user_edit.html', context)
-
-@login_required
-@user_passes_test(lambda u: u.is_editor())
-def editor_user_delete(request, pk):
-    """Supprimer un utilisateur"""
-    target_user = get_object_or_404(User, pk=pk)
-    
-    if target_user == request.user:
-        messages.error(request, 'Vous ne pouvez pas supprimer votre propre compte!')
-        return redirect('editor_users')
-    
-    if request.method == 'POST':
-        username = target_user.username
-        target_user.delete()
-        messages.success(request, f'L\'utilisateur {username} a été supprimé!')
-        return redirect('editor_users')
-    
-    context = {
-        'active': 'users',
-        'target_user': target_user,
-    }
-    return render(request, 'editor/user_delete.html', context)
-
-@login_required
-@user_passes_test(lambda u: u.is_editor())
-def editor_user_toggle_status(request, pk):
-    """Activer/Désactiver un utilisateur"""
-    target_user = get_object_or_404(User, pk=pk)
-    
-    if target_user != request.user:
-        target_user.is_active = not target_user.is_active
-        target_user.save()
-        status = "activé" if target_user.is_active else "désactivé"
-        messages.success(request, f'L\'utilisateur {target_user.username} a été {status}!')
-    else:
-        messages.error(request, 'Vous ne pouvez pas modifier votre propre statut!')
-    
-    return redirect('editor_users')
-
-@login_required
-@user_passes_test(lambda u: u.is_editor())
-def editor_user_change_role(request, pk):
-    """Changer le rôle d'un utilisateur"""
-    target_user = get_object_or_404(User, pk=pk)
-    
-    if request.method == 'POST':
-        new_role = request.POST.get('role')
-        if new_role in ['author', 'reviewer', 'editor']:
-            old_role = target_user.role
-            target_user.role = new_role
-            target_user.save()
-            messages.success(request, f'Rôle de {target_user.username} changé de {old_role} à {new_role}!')
-        else:
-            messages.error(request, 'Rôle invalide!')
-        
-        return redirect('editor_user_detail', pk=target_user.pk)
-    
-    context = {
-        'target_user': target_user,
-    }
-    return render(request, 'editor/user_change_role.html', context)
-# Ajouter en haut du fichier avec les autres imports
-from django.http import HttpResponse
-from django.template.loader import get_template
-from xhtml2pdf import pisa
-import os
 
 @login_required
 def download_article_pdf(request, pk):
-    """Télécharger un article au format PDF"""
+    """Download an article as PDF"""
+    from django.http import HttpResponse
+    from django.template.loader import get_template
+    from xhtml2pdf import pisa
+    
     article = get_object_or_404(Article, pk=pk)
     
-    # Vérifier les permissions
+    # Check permissions
     can_view = False
     if request.user == article.author:
         can_view = True
@@ -694,32 +442,32 @@ def download_article_pdf(request, pk):
             can_view = True
     
     if not can_view:
-        messages.error(request, 'Vous n\'avez pas la permission de télécharger cet article.')
+        messages.error(request, 'You do not have permission to download this article.')
         return redirect('dashboard')
     
-    # Préparer le contexte pour le template PDF
+    # Prepare context for the PDF template
     context = {
         'article': article,
         'user': request.user,
         'date': timezone.now(),
     }
     
-    # Rendre le template HTML
+    # Render the HTML template
     template = get_template('articles/article_pdf.html')
     html = template.render(context)
     
-    # Créer la réponse PDF
+    # Create the PDF response
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="article_{article.id}_{article.title}.pdf"'
     
-    # Générer le PDF
+    # Generate the PDF
     pisa_status = pisa.CreatePDF(html, dest=response)
     
     if pisa_status.err:
-        return HttpResponse('Erreur lors de la génération du PDF', status=500)
+        return HttpResponse('Error generating PDF', status=500)
     
     return response
-# Version alternative avec ReportLab
+# Alternative version using ReportLab
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
@@ -729,52 +477,52 @@ from io import BytesIO
 
 @login_required
 def download_article_pdf_simple(request, pk):
-    """Télécharger un article au format PDF (version simple)"""
+    """Download an article as PDF (simple version)"""
     article = get_object_or_404(Article, pk=pk)
     
-    # Créer un buffer pour le PDF
+    # Create a buffer for the PDF
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
     styles = getSampleStyleSheet()
     
-    # Créer un style personnalisé pour le titre
+    # Create custom style for the title
     title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=16, textColor=colors.HexColor('#667eea'), alignment=1)
     
-    # Contenu du PDF
+    # PDF content
     story = []
     
-    # Titre principal
+    # Main title
     story.append(Paragraph("Instructor: Journal of Computer Science and Applications", title_style))
     story.append(Spacer(1, 0.5*cm))
     
-    # Titre de l'article
+    # Article title
     story.append(Paragraph(article.title, styles['Heading1']))
     story.append(Spacer(1, 0.5*cm))
     
-    # Métadonnées
-    story.append(Paragraph(f"Auteur: {article.author.username}", styles['Normal']))
-    story.append(Paragraph(f"Statut: {article.get_status_display()}", styles['Normal']))
-    story.append(Paragraph(f"Soumis le: {article.submitted_date.strftime('%d/%m/%Y') if article.submitted_date else 'Non soumis'}", styles['Normal']))
+    # Metadata
+    story.append(Paragraph(f"Author: {article.author.username}", styles['Normal']))
+    story.append(Paragraph(f"Status: {article.get_status_display()}", styles['Normal']))
+    story.append(Paragraph(f"Submitted: {article.submitted_date.strftime('%d/%m/%Y') if article.submitted_date else 'Not submitted'}", styles['Normal']))
     story.append(Spacer(1, 0.5*cm))
     
-    # Résumé
-    story.append(Paragraph("Résumé", styles['Heading2']))
+    # Abstract
+    story.append(Paragraph("Abstract", styles['Heading2']))
     story.append(Paragraph(article.abstract, styles['Normal']))
     story.append(Spacer(1, 0.5*cm))
     
-    # Contenu
-    story.append(Paragraph("Contenu", styles['Heading2']))
+    # Content
+    story.append(Paragraph("Content", styles['Heading2']))
     story.append(Paragraph(article.content.replace('\n', '<br/>'), styles['Normal']))
     story.append(Spacer(1, 0.5*cm))
     
-    # Mots-clés
+    # Keywords
     if article.keywords:
-        story.append(Paragraph(f"Mots-clés: {article.keywords}", styles['Normal']))
+        story.append(Paragraph(f"Keywords: {article.keywords}", styles['Normal']))
     
-    # Générer le PDF
+    # Generate the PDF
     doc.build(story)
     
-    # Retourner le PDF
+    # Return the PDF
     buffer.seek(0)
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="article_{article.id}.pdf"'

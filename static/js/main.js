@@ -144,30 +144,7 @@ function copyToClipboard(text) {
 
 // ─── Translations ───────────────────────────────────────────────────────────
 const translations = {
-    fr: {
-            'submitted': 'Soumis',
-            'published': 'Publié',
-            'rejected': 'Rejeté',
-            'pending': 'En attente',
-            
-            // Reviews
-            'reviews': 'Relectures',
-            'submit_review': 'Soumettre une relecture',
-            'recommendation': 'Recommandation',
-            'comments': 'Commentaires',
-            'score': 'Note',
-            
-            // Users
-            'users': 'Utilisateurs',
-            'username': 'Nom d\'utilisateur',
-            'email': 'Email',
-            'password': 'Mot de passe',
-            
-            // Actions
-            'actions': 'Actions',
-            'confirm_delete': 'Êtes-vous sûr de vouloir supprimer ?',
-        },
-        en: {
+    en: {
             'nav_home': 'Home',
             'nav_dashboard': 'Dashboard',
             'nav_new_article': 'New article',
@@ -234,7 +211,7 @@ const translations = {
     function initLanguage(lang) {
     lang = lang || localStorage.getItem('language') || 'en';
     
-    // Traduire tous les éléments avec l'attribut data-translate
+    // Translate all elements with data-translate attribute
     document.querySelectorAll('[data-translate]').forEach(element => {
         const key = element.getAttribute('data-translate');
         if (translations[lang] && translations[lang][key]) {
@@ -246,7 +223,7 @@ const translations = {
         }
     });
     
-    // Traduire le titre de la page
+    // Translate the page title
     const titleKey = document.querySelector('title')?.getAttribute('data-translate');
     if (titleKey && translations[lang][titleKey]) {
         document.title = translations[lang][titleKey];
@@ -261,7 +238,7 @@ function initTheme() {
     }
 }
 
-// Initialisation au chargement de la page
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initLanguage();

@@ -112,15 +112,15 @@ def profile(request):
 
 @login_required
 def delete_profile_picture(request):
-    """Supprimer la photo de profil"""
+    """Delete the profile picture"""
     if request.user.profile_picture:
-        # Supprimer le fichier
+        # Delete the file
         request.user.profile_picture.delete()
         request.user.profile_picture = None
         request.user.save()
-        messages.success(request, 'Votre photo de profil a été supprimée avec succès!')
+        messages.success(request, 'Your profile picture has been deleted successfully!')
     else:
-        messages.error(request, 'Vous n\'avez pas de photo de profil à supprimer.')
+        messages.error(request, 'You do not have a profile picture to delete.')
     
     return redirect('profile')
 
