@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
     
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='author')
     bio = models.TextField(blank=True, null=True)
-    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True, default='defaults/default-avatar.png')
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     whatsapp = models.CharField(max_length=20, blank=True, null=True, help_text='WhatsApp number with country code, e.g. +2250123456789')
     
     def __str__(self):
