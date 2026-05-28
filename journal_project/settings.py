@@ -73,13 +73,18 @@ if DEBUG:
         }
     }
 else:
-    # Production (Render): use persistent disk
+    # Production (Render): try persistent disk, fallback to project dir
     DATA_DIR = '/data'
-    os.makedirs(DATA_DIR, exist_ok=True)
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        DB_PATH = os.path.join(DATA_DIR, 'db.sqlite3')
+    except PermissionError:
+        # Persistent disk not mounted — use project directory instead
+        DB_PATH = BASE_DIR / 'db.sqlite3'
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(DATA_DIR, 'db.sqlite3'),
+            'NAME': DB_PATH,
         }
     }
 
