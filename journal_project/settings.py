@@ -78,7 +78,7 @@ else:
     try:
         os.makedirs(DATA_DIR, exist_ok=True)
         DB_PATH = os.path.join(DATA_DIR, 'db.sqlite3')
-    except PermissionError:
+    except (PermissionError, OSError):
         # Persistent disk not mounted — use project directory instead
         DB_PATH = BASE_DIR / 'db.sqlite3'
     DATABASES = {
