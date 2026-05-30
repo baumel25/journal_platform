@@ -18,6 +18,8 @@ else:
         '127.0.0.1',
         'journal-platform-513m.onrender.com',
         '.onrender.com',
+        '.koyeb.app',
+        '.pythonanywhere.com',
     ]
 
 INSTALLED_APPS = [
