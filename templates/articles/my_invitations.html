@@ -37,7 +37,7 @@
                         </div>
                         <h5 class="article-title">{{ invitation.article.title }}</h5>
                         <p class="article-meta mb-1">
-                            <i class="bi bi-person me-1"></i>Author: {{ invitation.article.author.username }}
+                            <i class="bi bi-person me-1"></i>Author: Anonymous
                         </p>
                         <p class="article-meta mb-1">
                             <i class="bi bi-person-check me-1"></i>Invited by: {{ invitation.invited_by.get_full_name|default:invitation.invited_by.username }}
@@ -98,7 +98,7 @@
                         </div>
                         <h5 class="article-title">{{ invitation.article.title }}</h5>
                         <p class="article-meta mb-1">
-                            <i class="bi bi-person me-1"></i>Author: {{ invitation.article.author.username }}
+                            <i class="bi bi-person me-1"></i>Author: Anonymous
                         </p>
                         
                         {% if invitation.status == 'accepted' and invitation.deadline %}
