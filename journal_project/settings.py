@@ -160,6 +160,12 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'hnzihygwfhghsqei')
 DEFAULT_FROM_EMAIL = f'"Instructor: Journal of Computer Science and Applications" <{EMAIL_HOST_USER}>'
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000')
 
+# Auto-detect PythonAnywhere hostname if not explicitly set
+if 'BASE_URL' not in os.environ:
+    pa_user = os.environ.get('USER')
+    if pa_user and 'pythonanywhere' in (os.environ.get('PYTHONANYWHERE_DOMAIN') or ''):
+        BASE_URL = f'https://{pa_user}.pythonanywhere.com'
+
 # CSRF Trusted Origins (needed for Render's proxy)
 if not DEBUG:
     CSRF_TRUSTED_ORIGINS = [BASE_URL]
