@@ -18,13 +18,16 @@ def notify_reviewer_invitation(invitation):
     decline_url = f'{settings.BASE_URL}{reverse("decline_invitation", args=[invitation.pk])}'
     dashboard_url = f'{settings.BASE_URL}{reverse("dashboard")}'
 
+    # Hide author identity if article is submitted anonymously
+    author_label = 'Anonymous' if invitation.article.is_anonymous else (invitation.article.author.get_full_name() or invitation.article.author.username)
+
     message = f"""
 Dear {reviewer.get_full_name() or reviewer.username},
 
 You have been invited by editor {invitation.invited_by.get_full_name() or invitation.invited_by.username} to review the following article:
 
 Title: {invitation.article.title}
-Author: {invitation.article.author.get_full_name() or invitation.article.author.username}
+Author: {author_label}
 Abstract: {invitation.article.abstract[:300]}...
 Review Deadline: {invitation.deadline_days} days from acceptance
 Access Level: {"Full Article" if invitation.access_level == "full" else "Abstract Only"}
@@ -56,13 +59,16 @@ def notify_editor_invitation_response(invitation):
     status_text = "accepted" if invitation.status == "accepted" else "declined"
     subject = f'[Instructor: Journal of Computer Science and Applications] Invitation {status_text}: {invitation.article.title}'
 
+    # Hide author identity if article is submitted anonymously
+    author_label = 'Anonymous' if invitation.article.is_anonymous else (invitation.article.author.get_full_name() or invitation.article.author.username)
+
     message = f"""
 Dear {editor.get_full_name() or editor.username},
 
 Reviewer {invitation.reviewer.get_full_name() or invitation.reviewer.username} has {status_text} your invitation to review the following article:
 
 Title: {invitation.article.title}
-Author: {invitation.article.author.get_full_name() or invitation.article.author.username}
+Author: {author_label}
 Status: {status_text.capitalize()}
 
 {f'You can view the article here: {settings.BASE_URL}{reverse("article_detail", args=[invitation.article.pk])}' if invitation.status == "accepted" else ''}
@@ -197,6 +203,7 @@ def send_deadline_reminder(invitation, milestone):
         )
 
     subject = f'[Instructor: Journal of Computer Science and Applications] Review Deadline Reminder: {invitation.article.title}'
+    author_label = 'Anonymous' if invitation.article.is_anonymous else (invitation.article.author.get_full_name() or invitation.article.author.username)
     message = f"""
 Dear {reviewer.get_full_name() or reviewer.username},
 
@@ -204,7 +211,7 @@ Dear {reviewer.get_full_name() or reviewer.username},
 
 Article Details:
   Title: {invitation.article.title}
-  Author: {invitation.article.author.get_full_name() or invitation.article.author.username}
+  Author: {author_label}
   Review Deadline: {invitation.deadline.strftime("%B %d, %Y at %H:%M UTC") if invitation.deadline else "Not set"}
   Time Elapsed: {progress:.1f}%
   Days Remaining: {days_left if days_left else 0} day{pluralize(days_left or 0)}
