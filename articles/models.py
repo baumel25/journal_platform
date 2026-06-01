@@ -19,7 +19,7 @@ class Article(models.Model):
     keywords = models.CharField(max_length=200, blank=True)
     file = models.FileField(upload_to='article_files/', blank=True, null=True, help_text='Upload your document (PDF, DOC, DOCX)')
     is_anonymous = models.BooleanField(default=False, help_text='Hide the author name from reviewers')
-    manuscript_number = models.CharField(max_length=30, unique=True, blank=True, null=True, help_text='Auto-generated manuscript identifier (format: InstructorJCSA-XXXX)')
+    manuscript_number = models.CharField(max_length=30, unique=True, blank=True, null=True, help_text='Auto-generated manuscript identifier (format: I-JCSA-YYYY-XXX)')
     
     # Relationships
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='articles')
@@ -40,21 +40,23 @@ class Article(models.Model):
         return self.title
     
     def generate_manuscript_number(self):
-        """Generate the next sequential manuscript number: InstructorJCSA-XXXX."""
+        """Generate the next sequential manuscript number: I-JCSA-YYYY-XXX."""
         from django.db.models import Max
-        prefix = 'InstructorJCSA-'
-        # Find the highest existing order number
+        from django.utils import timezone
+        year = timezone.now().strftime('%Y')
+        prefix = f'I-JCSA-{year}-'
+        # Find the highest existing order number for this year
         last = Article.objects.filter(
             manuscript_number__startswith=prefix
         ).aggregate(Max('manuscript_number'))['manuscript_number__max']
         
         if last:
-            last_num = int(last.split('-')[1])
+            last_num = int(last.split('-')[-1])
             next_num = last_num + 1
         else:
             next_num = 1
         
-        return f"{prefix}{next_num:04d}"
+        return f"{prefix}{next_num:03d}"
 
     def submit_for_review(self):
         if not self.manuscript_number:
