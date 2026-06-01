@@ -4,9 +4,9 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count
 from django.contrib.auth import get_user_model
-from .models import Article, Review
-from .forms import ArticleForm, ReviewForm
-from .utils import notify_editors_new_submission, notify_author_decision
+from .models import Article, Review, ReviewInvitation, CoAuthor
+from .forms import ArticleForm, ReviewForm, CoAuthorFormSet
+from .utils import notify_editors_new_submission, notify_author_decision, notify_reviewer_invitation, notify_editor_invitation_response
 
 User = get_user_model()
 
@@ -16,16 +16,25 @@ User = get_user_model()
 def create_article(request):
     if request.method == 'POST':
         form = ArticleForm(request.POST, request.FILES)
+        formset = CoAuthorFormSet(request.POST)
+        
         if form.is_valid():
             article = form.save(commit=False)
             article.author = request.user
             article.status = 'draft'
             article.save()
+            
+            if formset.is_valid():
+                formset.instance = article
+                formset.save()
+            
             messages.success(request, 'Article created successfully!')
             return redirect('article_detail', pk=article.pk)
     else:
         form = ArticleForm()
-    return render(request, 'articles/create_article.html', {'form': form})
+        formset = CoAuthorFormSet()
+    
+    return render(request, 'articles/create_article.html', {'form': form, 'formset': formset})
 
 @login_required
 def article_detail(request, pk):
@@ -33,19 +42,51 @@ def article_detail(request, pk):
     
     # Check permissions
     can_view = False
-    if request.user == article.author:
+    access_level = 'full'
+    is_author_viewing = (request.user == article.author)
+    
+    if is_author_viewing:
         can_view = True
     elif request.user.is_editor():
         can_view = True
     elif request.user.is_reviewer():
-        if Review.objects.filter(article=article, reviewer=request.user).exists():
+        # Reviewer can only view if they have accepted an invitation for this article
+        invitation = ReviewInvitation.objects.filter(
+            article=article,
+            reviewer=request.user,
+            status='accepted',
+        ).first()
+        if invitation:
             can_view = True
+            access_level = invitation.access_level
     
     if not can_view:
         messages.error(request, 'You do not have permission to view this article.')
         return redirect('dashboard')
     
-    reviews = article.reviews.select_related('reviewer').all()
+    # Filter reviews based on user role and editor approval
+    if is_author_viewing:
+        # Author only sees editor-approved reviews (anonymized)
+        reviews = article.reviews.filter(editor_approved=True).select_related('reviewer')
+        anonymous_reviews = []
+        for review in reviews:
+            anonymous_reviews.append({
+                'originality_score': review.originality_score,
+                'significance_score': review.significance_score,
+                'methodology_score': review.methodology_score,
+                'clarity_score': review.clarity_score,
+                'comments_to_author': review.comments_to_author,
+                'recommendation': review.recommendation,
+                'submitted_date': review.submitted_date,
+                'is_anonymous': True,
+            })
+        reviews = anonymous_reviews
+    elif request.user.is_editor():
+        # Editor sees all reviews (including pending approval)
+        reviews = article.reviews.select_related('reviewer').all()
+    else:
+        # Reviewer sees only their own submitted reviews
+        reviews = article.reviews.filter(reviewer=request.user).select_related('reviewer')
     
     # Check if the current user (reviewer) has already submitted a review
     has_submitted_review = False
@@ -54,10 +95,18 @@ def article_detail(request, pk):
         if user_review and user_review.comments_to_author:
             has_submitted_review = True
     
+    # Co-author visibility: editors and the article author can see them, reviewers cannot
+    can_see_coauthors = is_author_viewing or request.user.is_editor()
+    co_authors = article.co_authors.all() if can_see_coauthors else []
+    
     context = {
         'article': article,
         'reviews': reviews,
-        'can_review': request.user.is_reviewer() and article.status == 'under_review' and not has_submitted_review
+        'co_authors': co_authors,
+        'can_see_coauthors': can_see_coauthors,
+        'access_level': access_level,
+        'is_author_viewing': is_author_viewing,
+        'can_review': request.user.is_reviewer() and article.status == 'under_review' and not has_submitted_review,
     }
     return render(request, 'articles/article_detail.html', context)
 
@@ -72,13 +121,21 @@ def edit_article(request, pk):
     
     if request.method == 'POST':
         form = ArticleForm(request.POST, request.FILES, instance=article)
+        formset = CoAuthorFormSet(request.POST, instance=article)
+        
         if form.is_valid():
-            form.save()
+            article = form.save()
+            if formset.is_valid():
+                formset.save()
             messages.success(request, 'Article updated successfully!')
             return redirect('article_detail', pk=article.pk)
     else:
         form = ArticleForm(instance=article)
-    return render(request, 'articles/edit_article.html', {'form': form, 'article': article})
+        formset = CoAuthorFormSet(instance=article)
+    
+    return render(request, 'articles/edit_article.html', {
+        'form': form, 'formset': formset, 'article': article,
+    })
 
 @login_required
 @user_passes_test(lambda u: u.is_author())
@@ -90,7 +147,13 @@ def submit_article(request, pk):
     else:
         article.submit_for_review()
         notify_editors_new_submission(article)
-        messages.success(request, 'Article submitted for review! Editors have been notified.')
+        ms = article.manuscript_number or 'N/A'
+        messages.success(
+            request,
+            f'Your article has been submitted successfully! '
+            f'Your manuscript number is <strong>{ms}</strong>. '
+            f'Please reference this number in all correspondence.'
+        )
     
     return redirect('article_detail', pk=article.pk)
 
@@ -176,12 +239,120 @@ def pending_reviews(request):
     reviews = Review.objects.filter(reviewer=request.user, article__status='under_review')
     return render(request, 'articles/pending_reviews.html', {'reviews': reviews})
 
+
+# ─── Review Invitation Views ───────────────────────────────────────────
+
+@login_required
+def my_invitations(request):
+    """Show pending review invitations for the reviewer."""
+    if not request.user.is_reviewer():
+        messages.error(request, 'Only reviewers can access invitations.')
+        return redirect('dashboard')
+    
+    pending_invitations = ReviewInvitation.objects.filter(
+        reviewer=request.user,
+        status='pending',
+    ).select_related('article', 'invited_by').order_by('-created_at')
+    
+    responded_invitations = ReviewInvitation.objects.filter(
+        reviewer=request.user,
+    ).exclude(status='pending').select_related('article', 'invited_by').order_by('-responded_at')
+    
+    context = {
+        'pending_invitations': pending_invitations,
+        'responded_invitations': responded_invitations,
+    }
+    return render(request, 'articles/my_invitations.html', context)
+
+
+@login_required
+def accept_invitation(request, pk):
+    """Accept a review invitation."""
+    if not request.user.is_reviewer():
+        messages.error(request, 'Only reviewers can accept invitations.')
+        return redirect('dashboard')
+    
+    invitation = get_object_or_404(ReviewInvitation, pk=pk, reviewer=request.user)
+    
+    if invitation.status != 'pending':
+        messages.error(request, 'This invitation has already been responded to.')
+        return redirect('my_invitations')
+    
+    # Create the Review object
+    Review.objects.get_or_create(
+        article=invitation.article,
+        reviewer=request.user,
+        defaults={
+            'comments_to_author': "",
+            'comments_to_editor': "",
+            'recommendation': 'major_revision',
+        }
+    )
+    
+    # Update invitation status
+    invitation.status = 'accepted'
+    invitation.responded_at = timezone.now()
+    # Calculate deadline from acceptance date + deadline_days
+    from datetime import timedelta
+    invitation.deadline = timezone.now() + timedelta(days=invitation.deadline_days)
+    invitation.save()
+    
+    # Update article status if this is the first accepted review
+    if invitation.article.status == 'submitted':
+        invitation.article.assign_to_reviewer()
+    
+    # Notify the editor
+    notify_editor_invitation_response(invitation)
+    
+    messages.success(
+        request,
+        f'You have accepted the invitation to review "{invitation.article.title}". '
+        f'You can now view and review the article.'
+    )
+    return redirect('article_detail', pk=invitation.article.pk)
+
+
+@login_required
+def decline_invitation(request, pk):
+    """Decline a review invitation."""
+    if not request.user.is_reviewer():
+        messages.error(request, 'Only reviewers can decline invitations.')
+        return redirect('dashboard')
+    
+    invitation = get_object_or_404(ReviewInvitation, pk=pk, reviewer=request.user)
+    
+    if invitation.status != 'pending':
+        messages.error(request, 'This invitation has already been responded to.')
+        return redirect('my_invitations')
+    
+    # Update invitation status
+    invitation.status = 'declined'
+    invitation.responded_at = timezone.now()
+    invitation.save()
+    
+    # Notify the editor
+    notify_editor_invitation_response(invitation)
+    
+    messages.info(
+        request,
+        f'You have declined the invitation to review "{invitation.article.title}". '
+        f'The editor has been notified.'
+    )
+    return redirect('my_invitations')
+
+
 # Editor Admin Views
 @login_required
 @user_passes_test(lambda u: u.is_editor())
 def editor_dashboard(request):
     articles = Article.objects.all()
     reviews = Review.objects.filter(comments_to_author__isnull=False).exclude(comments_to_author='').order_by('-submitted_date')[:5]
+    
+    pending_review_approvals = Review.objects.filter(
+        comments_to_author__isnull=False,
+    ).exclude(comments_to_author='').filter(
+        editor_approved__isnull=True,
+    ).count()
     
     context = {
         'active': 'dashboard',
@@ -191,6 +362,7 @@ def editor_dashboard(request):
         'under_review': articles.filter(status='under_review').count(),
         'total_users': User.objects.count(),
         'total_reviews': Review.objects.count(),
+        'pending_review_approvals': pending_review_approvals,
         'recent_articles': articles.order_by('-created_at')[:5],
         'recent_reviews': reviews,
     }
@@ -234,23 +406,47 @@ def assign_reviewer(request, pk):
     article = get_object_or_404(Article, pk=pk)
     reviewers = User.objects.filter(role='reviewer')
     
+    # Exclude reviewers who already have a pending/accepted invitation for this article
+    already_invited = ReviewInvitation.objects.filter(
+        article=article, reviewer__in=reviewers
+    ).values_list('reviewer_id', flat=True)
+    reviewers = reviewers.exclude(id__in=already_invited)
+    
     if request.method == 'POST':
         reviewer_id = request.POST.get('reviewer_id')
+        message = request.POST.get('message', '')
+        access_level = request.POST.get('access_level', 'full')
+        if access_level not in ('abstract_only', 'full'):
+            access_level = 'full'
+        deadline_days = request.POST.get('deadline_days', 30)
+        try:
+            deadline_days = int(deadline_days)
+            if deadline_days < 1:
+                deadline_days = 30
+        except (ValueError, TypeError):
+            deadline_days = 30
+        
         reviewer = get_object_or_404(User, pk=reviewer_id)
         
-        Review.objects.create(
+        # Create the invitation
+        invitation = ReviewInvitation.objects.create(
             article=article,
             reviewer=reviewer,
-            comments_to_author="",
-            comments_to_editor="",
-            recommendation='major_revision'
+            invited_by=request.user,
+            message=message,
+            access_level=access_level,
+            deadline_days=deadline_days,
+            status='pending',
         )
         
-        article.status = 'under_review'
-        article.under_review_date = timezone.now()
-        article.save()
+        # Send email notification to the reviewer
+        notify_reviewer_invitation(invitation)
         
-        messages.success(request, f'Reviewer {reviewer.username} has been assigned to "{article.title}"')
+        messages.success(
+            request,
+            f'Review invitation sent to {reviewer.get_full_name() or reviewer.username} for "{article.title}". '
+            f'They will be notified by email.'
+        )
         return redirect('editor_pending')
     
     context = {
@@ -422,6 +618,79 @@ def editor_user_change_role(request, pk):
     }
     return render(request, 'editor/user_change_role.html', context)
 
+# ========== REVIEW APPROVAL VIEWS ==========
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_pending_reviews(request):
+    """List all submitted reviews pending editor approval."""
+    pending_reviews = Review.objects.filter(
+        comments_to_author__isnull=False,
+    ).exclude(comments_to_author='').filter(
+        editor_approved__isnull=True,
+    ).select_related('article', 'reviewer', 'article__author').order_by('-submitted_date')
+    
+    context = {
+        'active': 'reviews',
+        'pending_reviews': pending_reviews,
+        'approved_reviews': Review.objects.filter(editor_approved=True).select_related('article', 'reviewer').order_by('-editor_reviewed_date')[:10],
+        'rejected_reviews': Review.objects.filter(editor_approved=False).select_related('article', 'reviewer').order_by('-editor_reviewed_date')[:10],
+    }
+    return render(request, 'editor/review_approvals.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_approve_review(request, pk):
+    """Approve a review so the author can see it."""
+    review = get_object_or_404(Review, pk=pk)
+    
+    if review.editor_approved is not None:
+        messages.warning(request, 'This review has already been processed.')
+        return redirect('editor_pending_reviews')
+    
+    review.editor_approved = True
+    review.editor_reviewed_date = timezone.now()
+    review.save()
+    
+    messages.success(
+        request,
+        f'Review of "{review.article.title}" by {review.reviewer.username} has been approved. '
+        f'The author can now view it.'
+    )
+    return redirect('article_detail', pk=review.article.pk)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_reject_review(request, pk):
+    """Reject a review so the author never sees it."""
+    review = get_object_or_404(Review, pk=pk)
+    
+    if review.editor_approved is not None:
+        messages.warning(request, 'This review has already been processed.')
+        return redirect('editor_pending_reviews')
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '')
+        review.editor_approved = False
+        review.editor_reviewed_date = timezone.now()
+        review.save()
+        
+        messages.info(
+            request,
+            f'Review of "{review.article.title}" by {review.reviewer.username} has been rejected. '
+            f'It will not be shown to the author.'
+        )
+        return redirect('editor_pending_reviews')
+    
+    context = {
+        'review': review,
+        'active': 'reviews',
+    }
+    return render(request, 'editor/review_reject.html', context)
+
+
 @login_required
 def download_article_pdf(request, pk):
     """Download an article as PDF"""
@@ -438,7 +707,15 @@ def download_article_pdf(request, pk):
     elif request.user.is_editor():
         can_view = True
     elif request.user.is_reviewer():
-        if Review.objects.filter(article=article, reviewer=request.user).exists():
+        invitation = ReviewInvitation.objects.filter(
+            article=article,
+            reviewer=request.user,
+            status='accepted',
+        ).first()
+        if invitation:
+            if invitation.access_level == 'abstract_only':
+                messages.error(request, 'You only have abstract-only access. Full document download is not available.')
+                return redirect('article_detail', pk=article.pk)
             can_view = True
     
     if not can_view:
@@ -479,6 +756,17 @@ from io import BytesIO
 def download_article_pdf_simple(request, pk):
     """Download an article as PDF (simple version)"""
     article = get_object_or_404(Article, pk=pk)
+    
+    # Check permissions (respect access level)
+    if request.user.is_reviewer():
+        invitation = ReviewInvitation.objects.filter(
+            article=article,
+            reviewer=request.user,
+            status='accepted',
+        ).first()
+        if invitation and invitation.access_level == 'abstract_only':
+            messages.error(request, 'You only have abstract-only access. Full document download is not available.')
+            return redirect('article_detail', pk=article.pk)
     
     # Create a buffer for the PDF
     buffer = BytesIO()

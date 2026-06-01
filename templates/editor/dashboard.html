@@ -28,6 +28,17 @@
         <h3>Total Reviews</h3>
         <div class="stat-number">{{ total_reviews }}</div>
     </div>
+    <div class="stat-card" style="{% if pending_review_approvals %}border-left: 4px solid #f59e0b;{% endif %}">
+        <h3>Pending Approval <span style="font-weight: normal; font-size: 0.8rem;">(Reviews)</span></h3>
+        <div class="stat-number {% if pending_review_approvals %}text-warning{% endif %}">
+            {{ pending_review_approvals }}
+            {% if pending_review_approvals %}
+                <a href="{% url 'editor_pending_reviews' %}" class="btn btn-sm btn-warning ms-2" style="font-size: 0.7rem; vertical-align: middle;">
+                    <i class="bi bi-arrow-right"></i> Review
+                </a>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <div class="data-table">

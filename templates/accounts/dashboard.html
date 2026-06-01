@@ -81,24 +81,93 @@
     
     {% elif user.role == 'reviewer' %}
         <!-- Reviewer Dashboard -->
+        
+        <!-- Review Invitations Section -->
+        {% with pending_invitations=user.review_invitations.all %}
+        {% with active_invitations=pending_invitations|dictsortreversed:"created_at" %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-envelope me-2 text-warning"></i>Review Invitations</h5>
+            <a href="{% url 'my_invitations' %}" class="btn btn-outline-warning btn-sm rounded-pill px-3">
+                <i class="bi bi-list me-1"></i>All Invitations
+            </a>
+        </div>
+        
+        {% if active_invitations %}
+            {% for invitation in active_invitations %}
+                {% if invitation.status == 'pending' %}
+                <div class="card-modern mb-3 border-warning border-opacity-25">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge bg-warning text-dark">Invitation</span>
+                                    <small class="text-muted">{{ invitation.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                <h5 class="fw-bold mb-1">{{ invitation.article.title }}</h5>
+                                <p class="text-muted small mb-0">
+                                    <i class="bi bi-person me-1"></i>Author: {{ invitation.article.author.username }}
+                                    <span class="mx-2">|</span>
+                                    <i class="bi bi-person-check me-1"></i>Invited by: {{ invitation.invited_by.get_full_name|default:invitation.invited_by.username }}
+                                </p>
+                                {% if invitation.message %}
+                                    <p class="small mb-0 mt-1 text-muted">
+                                        <i class="bi bi-chat-quote me-1"></i>"{{ invitation.message }}"
+                                    </p>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex gap-2 flex-shrink-0">
+                                <a href="{% url 'accept_invitation' invitation.pk %}" class="btn btn-success btn-sm rounded-pill">
+                                    <i class="bi bi-check-lg me-1"></i>Accept
+                                </a>
+                                <a href="{% url 'decline_invitation' invitation.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">
+                                    <i class="bi bi-x-lg me-1"></i>Decline
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+        {% endwith %}
+        
+        <!-- Pending Reviews Section -->
         {% with pending_reviews=reviews|dictsortreversed:"submitted_date" %}
-        <h5 class="fw-bold mb-4"><i class="bi bi-check2-square me-2 text-success"></i>Pending Reviews</h5>
+        <h5 class="fw-bold mb-4 mt-4"><i class="bi bi-check2-square me-2 text-success"></i>Articles to Review</h5>
         
         {% if pending_reviews %}
             {% for review in pending_reviews %}
                 {% if not review.comments_to_author %}
-                <div class="card-modern mb-3">
+                {% with invitation=review.article.invitations.all|dictsortreversed:"created_at"|first %}
+                <div class="card-modern mb-3 {% if invitation and invitation.deadline_progress >= 90 %}border-danger border-opacity-50{% elif invitation and invitation.deadline_progress >= 75 %}border-warning border-opacity-50{% endif %}">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                            <div>
+                            <div class="flex-grow-1">
                                 <h5 class="fw-bold mb-1">{{ review.article.title }}</h5>
                                 <p class="text-muted small mb-0">
                                     <i class="bi bi-person me-1"></i>Author: {{ review.article.author.username }}
                                     <span class="mx-2">|</span>
                                     <i class="bi bi-calendar me-1"></i>Submitted: {{ review.article.submitted_date|date:"M d, Y" }}
                                 </p>
+                                {% if invitation and invitation.deadline %}
+                                <div class="mt-2" style="max-width: 350px;">
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">Deadline: {{ invitation.deadline|date:"M d, Y" }}</span>
+                                        <span class="{% if invitation.deadline_progress >= 90 %}text-danger fw-bold{% elif invitation.deadline_progress >= 75 %}text-warning fw-bold{% endif %}">
+                                            {{ invitation.deadline_progress }}%
+                                        </span>
+                                    </div>
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar {% if invitation.deadline_progress >= 90 %}bg-danger{% elif invitation.deadline_progress >= 75 %}bg-warning{% else %}bg-success{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ invitation.deadline_progress }}%;">
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
                             </div>
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 flex-shrink-0">
                                 <a href="{% url 'submit_review' review.article.id %}" class="btn btn-primary btn-sm rounded-pill">
                                     <i class="bi bi-pencil-square me-1"></i>Submit Review
                                 </a>
@@ -109,6 +178,7 @@
                         </div>
                     </div>
                 </div>
+                {% endwith %}
                 {% endif %}
             {% endfor %}
         {% else %}

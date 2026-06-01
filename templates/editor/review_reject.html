@@ -1,0 +1,66 @@
+{% extends 'editor/base_admin.html' %}
+
+{% block page_title %}Reject Review{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card-modern">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4 text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Reject Review
+                </h5>
+                
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Note:</strong> Rejecting a review means the author will <strong>never</strong> see it. 
+                    Only do this if the review is inappropriate, low quality, or violates guidelines.
+                </div>
+                
+                <!-- Review Info -->
+                <div class="p-3 mb-4" style="background: #f8f9fa; border-radius: var(--radius-md);">
+                    <h6 class="fw-bold mb-2">{{ review.article.title }}</h6>
+                    <div class="row g-2 small">
+                        <div class="col-md-6">
+                            <span class="text-muted">Reviewer:</span> {{ review.reviewer.get_full_name|default:review.reviewer.username }}
+                        </div>
+                        <div class="col-md-6">
+                            <span class="text-muted">Recommendation:</span> 
+                            <span class="status-badge 
+                                {% if review.recommendation == 'accept' %}status-approved
+                                {% elif review.recommendation == 'reject' %}status-rejected
+                                {% else %}status-under_review{% endif %}">
+                                {{ review.get_recommendation_display }}
+                            </span>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="text-muted">Score:</span> {{ review.get_average_score|floatformat:1 }}/5
+                        </div>
+                        <div class="col-md-6">
+                            <span class="text-muted">Submitted:</span> {{ review.submitted_date|date:"M d, Y" }}
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Rejection (optional)</label>
+                        <textarea name="reason" class="form-control" rows="3" placeholder="Why are you rejecting this review? (Internal note)"></textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-x-lg me-1"></i>Yes, Reject Review
+                        </button>
+                        <a href="{% url 'editor_pending_reviews' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

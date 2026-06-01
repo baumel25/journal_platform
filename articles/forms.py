@@ -1,17 +1,32 @@
 from django import forms
-from .models import Article, Review
+from django.forms import inlineformset_factory
+from .models import Article, CoAuthor, Review
 
 class ArticleForm(forms.ModelForm):
     class Meta:
         model = Article
-        fields = ['title', 'abstract', 'content', 'keywords', 'file']
+        fields = ['title', 'abstract', 'content', 'keywords', 'file', 'is_anonymous']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter article title'}),
             'abstract': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Write a brief abstract'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 15, 'placeholder': 'Write your article content here'}),
             'keywords': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., python, django, web development'}),
             'file': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.doc,.docx'}),
+            'is_anonymous': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+CoAuthorFormSet = inlineformset_factory(
+    Article, CoAuthor,
+    fields=['name', 'email', 'affiliation', 'orcid'],
+    extra=1,
+    can_delete=True,
+    widgets={
+        'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Full name'}),
+        'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'}),
+        'affiliation': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Institution (optional)'}),
+        'orcid': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0000-0000-0000-0000 (optional)'}),
+    },
+)
 
 class ReviewForm(forms.ModelForm):
     class Meta:

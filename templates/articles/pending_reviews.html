@@ -20,8 +20,9 @@
     {% if reviews %}
         <div class="row g-4">
             {% for review in reviews %}
+                {% with invitation=review.article.invitations.all|dictsortreversed:"created_at"|first %}
                 <div class="col-md-6 col-lg-4">
-                    <div class="article-card">
+                    <div class="article-card {% if invitation and invitation.deadline_progress >= 90 %}border-danger border-opacity-50{% elif invitation and invitation.deadline_progress >= 75 %}border-warning border-opacity-50{% endif %}">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <span class="status-badge status-under_review">Pending</span>
                             <small class="text-muted">{{ review.article.submitted_date|date:"M d, Y" }}</small>
@@ -33,6 +34,29 @@
                         {% if review.article.abstract %}
                             <p class="article-meta small">{{ review.article.abstract|truncatechars:120 }}</p>
                         {% endif %}
+                        {% if invitation and invitation.deadline %}
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-muted">Deadline: {{ invitation.deadline|date:"M d, Y" }}</span>
+                                <span class="{% if invitation.deadline_progress >= 90 %}text-danger fw-bold{% elif invitation.deadline_progress >= 75 %}text-warning fw-bold{% endif %}">
+                                    {{ invitation.deadline_progress }}%
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar {% if invitation.deadline_progress >= 90 %}bg-danger{% elif invitation.deadline_progress >= 75 %}bg-warning{% else %}bg-success{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ invitation.deadline_progress }}%;">
+                                </div>
+                            </div>
+                            <div class="small mt-1">
+                                {% if invitation.days_remaining > 0 %}
+                                    <span class="text-muted">{{ invitation.days_remaining }} day{{ invitation.days_remaining|pluralize }} remaining</span>
+                                {% else %}
+                                    <span class="text-danger fw-bold">Overdue!</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
                         <div class="article-actions d-flex gap-2">
                             <a href="{% url 'submit_review' review.article.pk %}" class="btn btn-primary btn-sm flex-grow-1">
                                 <i class="bi bi-pencil-square me-1"></i>Submit Review
@@ -43,6 +67,7 @@
                         </div>
                     </div>
                 </div>
+                {% endwith %}
             {% endfor %}
         </div>
     {% else %}

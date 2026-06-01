@@ -54,15 +54,31 @@
                 <td>{{ article.title }}</td>
                 <td>{{ article.author.username }}</td>
                 <td>
-                    {% for review in article.reviews.all %}
-                        {{ review.reviewer.username }}{% if not forloop.last %}, {% endif %}
-                    {% endfor %}
+                    {% with invitations=article.invitations.all %}
+                        {% if invitations %}
+                            {% for inv in invitations %}
+                                {{ inv.reviewer.username }}
+                                <span class="status-badge 
+                                    {% if inv.status == 'accepted' %}status-approved
+                                    {% elif inv.status == 'declined' %}status-rejected
+                                    {% else %}status-under_review{% endif %}
+                                    " style="font-size: 0.7rem; padding: 1px 6px;">
+                                    {{ inv.get_status_display }}
+                                </span>
+                                {% if not forloop.last %}<br>{% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">No reviewers invited</span>
+                        {% endif %}
+                    {% endwith %}
                 </td>
                 <td><span class="status-badge status-{{ article.status }}">{{ article.get_status_display }}</span></td>
                 <td>
-                    <a href="{% url 'article_detail' article.pk %}" class="action-btn btn-view">View Reviews</a>
-                    <a href="{% url 'approve_article' article.pk %}" class="action-btn btn-edit">Approve</a>
-                    <a href="{% url 'reject_article' article.pk %}" class="action-btn btn-delete">Reject</a>
+                    <a href="{% url 'article_detail' article.pk %}" class="action-btn btn-view">View</a>
+                    {% if article.status == 'under_review' %}
+                        <a href="{% url 'approve_article' article.pk %}" class="action-btn btn-edit">Approve</a>
+                        <a href="{% url 'reject_article' article.pk %}" class="action-btn btn-delete">Reject</a>
+                    {% endif %}
                 </td>
             </tr>
             {% empty %}

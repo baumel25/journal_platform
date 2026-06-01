@@ -14,12 +14,20 @@ urlpatterns = [
     path('my-articles/', views.my_articles, name='my_articles'),
     path('pending-reviews/', views.pending_reviews, name='pending_reviews'),
     
+    # Review Invitation URLs
+    path('invitations/', views.my_invitations, name='my_invitations'),
+    path('invitations/<int:pk>/accept/', views.accept_invitation, name='accept_invitation'),
+    path('invitations/<int:pk>/decline/', views.decline_invitation, name='decline_invitation'),
+    
     # Editor URLs
     path('editor/dashboard/', views.editor_dashboard, name='editor_dashboard'),
     path('editor/articles/', views.editor_articles, name='editor_articles'),
     path('editor/reviews/', views.editor_reviews, name='editor_reviews'),
     path('editor/pending/', views.editor_pending, name='editor_pending'),
     path('editor/assign-reviewer/<int:pk>/', views.assign_reviewer, name='assign_reviewer'),
+    path('editor/review-approvals/', views.editor_pending_reviews, name='editor_pending_reviews'),
+    path('editor/review/<int:pk>/approve/', views.editor_approve_review, name='editor_approve_review'),
+    path('editor/review/<int:pk>/reject/', views.editor_reject_review, name='editor_reject_review'),
     path('editor/article/<int:pk>/edit/', views.editor_article_edit, name='editor_article_edit'),
     path('editor/article/<int:pk>/delete/', views.editor_article_delete, name='editor_article_delete'),
     

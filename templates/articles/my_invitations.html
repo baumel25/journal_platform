@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">Review Invitations</h1>
+                <p class="mb-0">Manage your pending review invitations</p>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Pending Invitations -->
+    <h5 class="fw-bold mb-4">
+        <i class="bi bi-envelope-open me-2 text-warning"></i>Pending Invitations
+        {% if pending_invitations %}
+            <span class="badge bg-warning text-dark ms-2">{{ pending_invitations|length }}</span>
+        {% endif %}
+    </h5>
+
+    {% if pending_invitations %}
+        <div class="row g-4 mb-5">
+            {% for invitation in pending_invitations %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="article-card border-warning border-opacity-25">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="status-badge status-under_review">Invitation Pending</span>
+                            <small class="text-muted">{{ invitation.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        <h5 class="article-title">{{ invitation.article.title }}</h5>
+                        <p class="article-meta mb-1">
+                            <i class="bi bi-person me-1"></i>Author: {{ invitation.article.author.username }}
+                        </p>
+                        <p class="article-meta mb-1">
+                            <i class="bi bi-person-check me-1"></i>Invited by: {{ invitation.invited_by.get_full_name|default:invitation.invited_by.username }}
+                        </p>
+                        <p class="article-meta mb-1">
+                            <i class="bi bi-clock me-1"></i>Review period: <strong>{{ invitation.deadline_days }} days</strong> if accepted
+                        </p>
+                        <p class="article-meta mb-1">
+                            <i class="bi bi-eye me-1"></i>Access: <strong>{% if invitation.access_level == 'full' %}Full Article{% else %}Abstract Only{% endif %}</strong>
+                        </p>
+                        {% if invitation.article.abstract %}
+                            <p class="article-meta small">{{ invitation.article.abstract|truncatechars:120 }}</p>
+                        {% endif %}
+                        {% if invitation.message %}
+                            <div class="p-2 mb-2" style="background: #f0f4ff; border-radius: var(--radius-sm); border-left: 3px solid var(--primary);">
+                                <small class="text-muted"><i class="bi bi-chat-quote me-1"></i>Editor's note:</small>
+                                <p class="mb-0 small">{{ invitation.message }}</p>
+                            </div>
+                        {% endif %}
+                        <div class="article-actions d-flex gap-2">
+                            <a href="{% url 'accept_invitation' invitation.pk %}" class="btn btn-success btn-sm flex-grow-1">
+                                <i class="bi bi-check-lg me-1"></i>Accept
+                            </a>
+                            <a href="{% url 'decline_invitation' invitation.pk %}" class="btn btn-outline-danger btn-sm flex-grow-1">
+                                <i class="bi bi-x-lg me-1"></i>Decline
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card-modern mb-5">
+            <div class="card-body text-center py-4">
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+                    <h4>No Pending Invitations</h4>
+                    <p class="mb-0">You have no pending review invitations at the moment.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Responded & Accepted Invitations (with deadline progress) -->
+    {% if responded_invitations %}
+        <h5 class="fw-bold mb-4">
+            <i class="bi bi-clock-history me-2 text-secondary"></i>Responded Invitations
+        </h5>
+        <div class="row g-4">
+            {% for invitation in responded_invitations %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="article-card {% if invitation.status == 'accepted' %}border-success border-opacity-25{% else %}border-secondary border-opacity-10{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="status-badge {% if invitation.status == 'accepted' %}status-approved{% else %}status-rejected{% endif %}">
+                                {{ invitation.get_status_display }}
+                            </span>
+                            <small class="text-muted">{{ invitation.responded_at|date:"M d, Y" }}</small>
+                        </div>
+                        <h5 class="article-title">{{ invitation.article.title }}</h5>
+                        <p class="article-meta mb-1">
+                            <i class="bi bi-person me-1"></i>Author: {{ invitation.article.author.username }}
+                        </p>
+                        
+                        {% if invitation.status == 'accepted' and invitation.deadline %}
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="text-muted">Deadline progress</span>
+                                    <span class="{% if invitation.deadline_progress >= 90 %}text-danger fw-bold{% elif invitation.deadline_progress >= 75 %}text-warning fw-bold{% else %}text-muted{% endif %}">
+                                        {{ invitation.deadline_progress }}%
+                                    </span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar {% if invitation.deadline_progress >= 90 %}bg-danger{% elif invitation.deadline_progress >= 75 %}bg-warning{% else %}bg-success{% endif %}" 
+                                         role="progressbar" 
+                                         style="width: {{ invitation.deadline_progress }}%;" 
+                                         aria-valuenow="{{ invitation.deadline_progress }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between small mt-1">
+                                    <span class="text-muted">
+                                        <i class="bi bi-calendar-check me-1"></i>Due: {{ invitation.deadline|date:"M d, Y" }}
+                                    </span>
+                                    <span class="{% if invitation.days_remaining <= 3 %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                        {% if invitation.days_remaining > 0 %}
+                                            {{ invitation.days_remaining }} day{{ invitation.days_remaining|pluralize }} left
+                                        {% else %}
+                                            <span class="text-danger">Overdue!</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="article-actions">
+                            {% if invitation.status == 'accepted' %}
+                                <a href="{% url 'article_detail' invitation.article.pk %}" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="bi bi-eye me-1"></i>View Article
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

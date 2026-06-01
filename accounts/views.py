@@ -74,7 +74,7 @@ def user_logout(request):
 
 @login_required
 def dashboard(request):
-    from articles.models import Article
+    from articles.models import Article, ReviewInvitation
     
     context = {}
     
@@ -82,6 +82,11 @@ def dashboard(request):
         return redirect('editor_dashboard')
     elif request.user.is_reviewer():
         context['reviews'] = request.user.reviews.all()
+        # Include accepted invitations with deadline info
+        context['accepted_invitations'] = ReviewInvitation.objects.filter(
+            reviewer=request.user,
+            status='accepted',
+        ).select_related('article').order_by('-deadline')
     elif request.user.is_author():
         context['my_articles'] = request.user.articles.all().order_by('-created_at')
     

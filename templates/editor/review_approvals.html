@@ -1,0 +1,116 @@
+{% extends 'editor/base_admin.html' %}
+
+{% block page_title %}Review Approvals{% endblock %}
+
+{% block content %}
+<!-- Pending Reviews -->
+<h3>Pending Review Approval</h3>
+<div class="data-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Reviewer</th>
+                <th>Recommendation</th>
+                <th>Score</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in pending_reviews %}
+            <tr>
+                <td>
+                    <strong>{{ review.article.title }}</strong>
+                    <br><small class="text-muted">by {{ review.article.author.username }}</small>
+                </td>
+                <td>{{ review.reviewer.get_full_name|default:review.reviewer.username }}</td>
+                <td>
+                    <span class="status-badge 
+                        {% if review.recommendation == 'accept' %}status-approved
+                        {% elif review.recommendation == 'reject' %}status-rejected
+                        {% else %}status-under_review{% endif %}">
+                        {{ review.get_recommendation_display }}
+                    </span>
+                </td>
+                <td>{{ review.get_average_score|floatformat:1 }}/5</td>
+                <td>{{ review.submitted_date|date:"M d, Y" }}</td>
+                <td style="white-space: nowrap;">
+                    <a href="{% url 'article_detail' review.article.pk %}" class="action-btn btn-view">View</a>
+                    <a href="{% url 'editor_approve_review' review.pk %}" class="action-btn btn-edit">Approve</a>
+                    <a href="{% url 'editor_reject_review' review.pk %}" class="action-btn btn-delete">Reject</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 2rem; opacity: 0.3;" class="mb-2">
+                        <i class="bi bi-check2-all"></i>
+                    </div>
+                    <strong>All caught up!</strong><br>
+                    <small class="text-muted">No reviews are pending approval.</small>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Approved Reviews -->
+{% if approved_reviews %}
+<h3 style="margin-top: 2rem;">Recently Approved</h3>
+<div class="data-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Reviewer</th>
+                <th>Recommendation</th>
+                <th>Approved Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in approved_reviews %}
+            <tr>
+                <td>{{ review.article.title }}</td>
+                <td>{{ review.reviewer.get_full_name|default:review.reviewer.username }}</td>
+                <td>
+                    <span class="status-badge status-approved">{{ review.get_recommendation_display }}</span>
+                </td>
+                <td>{{ review.editor_reviewed_date|date:"M d, Y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- Rejected Reviews -->
+{% if rejected_reviews %}
+<h3 style="margin-top: 2rem;">Recently Rejected</h3>
+<div class="data-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Reviewer</th>
+                <th>Recommendation</th>
+                <th>Rejected Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in rejected_reviews %}
+            <tr>
+                <td>{{ review.article.title }}</td>
+                <td>{{ review.reviewer.get_full_name|default:review.reviewer.username }}</td>
+                <td>
+                    <span class="status-badge status-rejected">{{ review.get_recommendation_display }}</span>
+                </td>
+                <td>{{ review.editor_reviewed_date|date:"M d, Y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

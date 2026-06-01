@@ -306,9 +306,13 @@
                 <i class="bi bi-hourglass-split"></i>
                 <span>Pending Approvals</span>
             </a>
+            <a href="{% url 'editor_pending_reviews' %}" class="nav-item {% if active == 'review_approvals' %}active{% endif %}">
+                <i class="bi bi-check2-circle"></i>
+                <span>Review Approvals</span>
+            </a>
             <a href="{% url 'editor_reviews' %}" class="nav-item {% if active == 'reviews' %}active{% endif %}">
                 <i class="bi bi-star"></i>
-                <span>Reviews</span>
+                <span>All Reviews</span>
             </a>
         </div>
         

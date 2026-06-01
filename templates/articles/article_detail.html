@@ -9,7 +9,23 @@
                 <h1 class="mb-1">{{ article.title }}</h1>
                 <p class="mb-0">
                     <span class="status-badge status-{{ article.status }} me-2">{{ article.get_status_display }}</span>
-                    <span class="text-white-50">by <strong>{{ article.author.username }}</strong></span>
+                    {% if article.manuscript_number %}
+                        <span class="badge bg-light text-dark me-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-hash me-1"></i>{{ article.manuscript_number }}
+                        </span>
+                    {% endif %}
+                    <span class="text-white-50">
+                        by <strong>
+                            {% if article.is_anonymous and not is_author_viewing and not user.is_editor %}
+                                Anonymous
+                            {% else %}
+                                {{ article.author.username }}
+                            {% endif %}
+                        </strong>
+                        {% if article.is_anonymous and user.is_editor %}
+                            <span class="badge bg-secondary ms-2" style="font-size: 0.6rem;">Anonymous Submission</span>
+                        {% endif %}
+                    </span>
                 </p>
             </div>
             <div class="d-flex gap-2">
@@ -44,8 +60,22 @@
                     <div class="d-flex flex-wrap gap-4 mb-4">
                         <div>
                             <small class="text-muted d-block">Author</small>
-                            <strong><i class="bi bi-person me-1"></i>{{ article.author.username }}</strong>
+                            <strong><i class="bi bi-person me-1"></i>
+                                {% if article.is_anonymous and not is_author_viewing and not user.is_editor %}
+                                    Anonymous
+                                {% else %}
+                                    {{ article.author.username }}
+                                {% endif %}
+                            </strong>
                         </div>
+                        {% if can_see_coauthors and co_authors %}
+                        <div>
+                            <small class="text-muted d-block">Co-Authors</small>
+                            {% for co in co_authors %}
+                                <strong><i class="bi bi-people me-1"></i>{{ co.name }}</strong>{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                         {% if article.keywords %}
                         <div>
                             <small class="text-muted d-block">Keywords</small>
@@ -66,7 +96,7 @@
                 </div>
             </div>
             
-            {% if article.file %}
+            {% if article.file and access_level != 'abstract_only' %}
             <!-- File -->
             <div class="card-modern mb-4">
                 <div class="card-body p-4">
@@ -95,6 +125,21 @@
                 </div>
             </div>
             
+            {% if access_level == 'abstract_only' and not is_author_viewing and user.is_reviewer %}
+            <!-- Access Level Notice -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4 text-center">
+                    <div style="font-size: 2.5rem; color: var(--primary); opacity: 0.5;" class="mb-3">
+                        <i class="bi bi-eye-slash"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Abstract-Only Access</h5>
+                    <p class="text-muted mb-0">
+                        You have been granted access to view only the abstract of this article.
+                        The full content and document are restricted per the editor's configuration.
+                    </p>
+                </div>
+            </div>
+            {% else %}
             <!-- Content -->
             <div class="card-modern mb-4">
                 <div class="card-body p-4">
@@ -102,6 +147,7 @@
                     <div style="line-height: 1.8;">{{ article.content|linebreaks }}</div>
                 </div>
             </div>
+            {% endif %}
             
             <!-- Editor Actions -->
             {% if user.is_editor %}
@@ -144,13 +190,25 @@
                     <div class="card-modern mb-3">
                         <div class="card-body p-3">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <strong class="small">{{ review.reviewer.username }}</strong>
+                                <strong class="small">
+                                    {% if review.is_anonymous %}
+                                        <i class="bi bi-incognito me-1"></i>Anonymous Reviewer
+                                    {% else %}
+                                        {{ review.reviewer.username }}
+                                    {% endif %}
+                                </strong>
+                                {% if not review.is_anonymous and review.editor_approved is None %}
+                                    <span class="badge bg-warning text-dark" style="font-size: 0.6rem;">Pending Approval</span>
+                                {% elif not review.is_anonymous and review.editor_approved is False %}
+                                    <span class="badge bg-danger" style="font-size: 0.6rem;">Rejected</span>
+                                {% else %}
                                 <span class="status-badge 
                                     {% if review.recommendation == 'accept' %}status-approved
                                     {% elif review.recommendation == 'reject' %}status-rejected
                                     {% else %}status-under_review{% endif %}" style="font-size: 0.65rem;">
                                     {{ review.get_recommendation_display }}
                                 </span>
+                                {% endif %}
                             </div>
                             
                             {% if review.originality_score %}
@@ -194,7 +252,18 @@
                                 <p class="small mb-0 text-muted" style="line-height: 1.6;">{{ review.comments_to_author|linebreaks }}</p>
                             </div>
                             
-                            {% if user.is_editor and review.comments_to_editor %}
+                            {% if user.is_editor and not review.is_anonymous and review.editor_approved is None %}
+                                <div class="d-flex gap-2 mt-3">
+                                    <a href="{% url 'editor_approve_review' review.id %}" class="btn btn-success btn-sm flex-grow-1" style="font-size: 0.75rem;">
+                                        <i class="bi bi-check-lg me-1"></i>Approve
+                                    </a>
+                                    <a href="{% url 'editor_reject_review' review.id %}" class="btn btn-outline-danger btn-sm flex-grow-1" style="font-size: 0.75rem;">
+                                        <i class="bi bi-x-lg me-1"></i>Reject
+                                    </a>
+                                </div>
+                            {% endif %}
+                            
+                            {% if user.is_editor and review.comments_to_editor and not review.is_anonymous %}
                                 <div class="mt-3 p-2" style="background: #fef9e7; border-radius: var(--radius-sm);">
                                     <small class="fw-semibold d-block mb-1 text-warning">
                                         <i class="bi bi-lock me-1"></i>Confidential Note for Editor:
