@@ -113,8 +113,8 @@
         {% if article.manuscript_number %}
         <div class="meta-item"><span class="meta-label">Manuscript No:</span> {{ article.manuscript_number }}</div>
         {% endif %}
-        <div class="meta-item"><span class="meta-label">Author:</span> {{ article.author.get_full_name|default:article.author.username }}</div>
-        {% if article.co_authors.all %}
+        <div class="meta-item"><span class="meta-label">Author:</span> {% if show_author_info %}{{ article.author.get_full_name|default:article.author.username }}{% else %}Anonymous{% endif %}</div>
+        {% if show_author_info and article.co_authors.all %}
         <div class="meta-item">
             <span class="meta-label">Co-Authors:</span>
             {% for co in article.co_authors.all %}{{ co.name }}{% if not forloop.last %}, {% endif %}{% endfor %}

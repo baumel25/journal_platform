@@ -16,7 +16,7 @@
                     {% endif %}
                     <span class="text-white-50">
                         by <strong>
-                            {% if article.is_anonymous and not is_author_viewing and not user.is_editor %}
+                            {% if article.is_anonymous and not is_author_viewing %}
                                 Anonymous
                             {% else %}
                                 {{ article.author.username }}
@@ -61,7 +61,7 @@
                         <div>
                             <small class="text-muted d-block">Author</small>
                             <strong><i class="bi bi-person me-1"></i>
-                                {% if article.is_anonymous and not is_author_viewing and not user.is_editor %}
+                                {% if article.is_anonymous and not is_author_viewing %}
                                     Anonymous
                                 {% else %}
                                     {{ article.author.username }}

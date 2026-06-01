@@ -723,9 +723,14 @@ def download_article_pdf(request, pk):
         return redirect('dashboard')
     
     # Prepare context for the PDF template
+    is_author_viewing = (request.user == article.author)
+    show_author_info = not article.is_anonymous or is_author_viewing
+    
     context = {
         'article': article,
         'user': request.user,
+        'show_author_info': show_author_info,
+        'is_author_viewing': is_author_viewing,
         'date': timezone.now(),
     }
     
