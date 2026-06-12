@@ -6,9 +6,7 @@
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "python manage.py migrate --noinput && gunicorn journal_project.wsgi:application --bind 0.0.0.0:$PORT --log-level debug --timeout 120",
-    "healthcheckPath": "/login/",
-    "healthcheckTimeout": 300,
+    "startCommand": "python manage.py migrate --noinput && python -m gunicorn journal_project.wsgi:application --bind 0.0.0.0:$PORT --log-level debug --timeout 120",
     "restartPolicyType": "ON_FAILURE"
   }
 }
