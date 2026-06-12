@@ -50,6 +50,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'journal_project.urls'
+WSGI_APPLICATION = 'journal_project.wsgi.application'
 
 TEMPLATES = [
     {
