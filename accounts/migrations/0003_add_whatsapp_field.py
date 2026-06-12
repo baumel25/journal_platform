@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='whatsapp',
-            field=models.CharField(blank=True, help_text='WhatsApp number with country code, e.g. +2250123456789', max_length=20, null=True),
+            field=models.CharField(blank=True, help_text='WhatsApp number with country code, e.g. +237674015315', max_length=20, null=True),
         ),
     ]

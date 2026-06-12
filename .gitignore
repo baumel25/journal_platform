@@ -6,4 +6,4 @@ media/
 .env
 .DS_Store
 staticfiles/
-static/vendor/
+# static/vendor/ — uncommented because Railway needs these for collectstatic
