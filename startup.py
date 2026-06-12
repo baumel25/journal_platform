@@ -27,4 +27,5 @@ else:
 # Start gunicorn — use PORT env variable (Railway, Koyeb, Render, etc.)
 port = os.environ.get('PORT', '8000')
 print(f"Starting gunicorn on 0.0.0.0:{port}...", flush=True)
-os.execvp('gunicorn', ['gunicorn', '--bind', f'0.0.0.0:{port}', '--log-level', 'info', '--access-logfile', '-', 'journal_project.wsgi:application'])
+# Use python -m gunicorn to ensure the venv's gunicorn is found
+os.execvp(sys.executable, [sys.executable, '-m', 'gunicorn', '--bind', f'0.0.0.0:{port}', '--log-level', 'info', '--access-logfile', '-', '--timeout', '120', 'journal_project.wsgi:application'])
