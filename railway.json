@@ -2,11 +2,11 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "pip install -r requirements.txt"
+    "buildCommand": "pip install -r requirements.txt && python manage.py collectstatic --noinput --clear"
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "python startup.py",
+    "startCommand": "gunicorn journal_project.wsgi:application --bind 0.0.0.0:$PORT --log-level debug --timeout 120",
     "healthcheckPath": "/login/",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE"
