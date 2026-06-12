@@ -7,8 +7,8 @@
   "deploy": {
     "numReplicas": 1,
     "startCommand": "python startup.py",
-    "healthcheckPath": "/",
-    "healthcheckTimeout": 100,
+    "healthcheckPath": "/login/",
+    "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE"
   }
 }
