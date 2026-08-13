@@ -1,9 +1,13 @@
 venv/
+.venv/
 __pycache__/
 *.pyc
 db.sqlite3
-media/
+*.bak
+media/profile_pics/
+media/article_files/
 .env
 .DS_Store
 staticfiles/
+_test*
 # static/vendor/ — uncommented because Railway needs these for collectstatic

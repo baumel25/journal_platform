@@ -11,6 +11,7 @@ urlpatterns = [
     path('<int:pk>/review/', views.submit_review, name='submit_review'),
     path('<int:pk>/approve/', views.approve_article, name='approve_article'),
     path('<int:pk>/reject/', views.reject_article, name='reject_article'),
+    path('<int:pk>/publish/', views.publish_article, name='publish_article'),
     path('my-articles/', views.my_articles, name='my_articles'),
     path('pending-reviews/', views.pending_reviews, name='pending_reviews'),
     

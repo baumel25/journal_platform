@@ -64,6 +64,12 @@
                                 <input type="text" name="whatsapp" value="{{ user.whatsapp|default:'' }}" class="form-control" placeholder="+2250123456789">
                             </div>
                             
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="bi bi-building me-1"></i>Affiliation</label>
+                                <input type="text" name="affiliation" value="{{ user.affiliation|default:'' }}" class="form-control" placeholder="e.g. Department of Computer Science, University of ...">
+                                <small class="text-muted">Shown on your published article's PDF</small>
+                            </div>
+                            
                             <div class="col-12">
                                 <label class="form-label">Profile Picture</label>
                                 <input type="file" name="profile_picture" accept="image/*" class="form-control">

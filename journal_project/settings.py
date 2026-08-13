@@ -166,7 +166,9 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'christianyonta73@gmail.com')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'hnzihygwfhghsqei')
+# SECURITY: the Gmail app password is read ONLY from the environment. Set
+# EMAIL_HOST_PASSWORD locally and on Railway, or email sending will be skipped.
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = f'"Instructor: Journal of Computer Science and Applications" <{EMAIL_HOST_USER}>'
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000')
 

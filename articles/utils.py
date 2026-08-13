@@ -1,3 +1,6 @@
+import re
+from html import escape
+
 from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -5,6 +8,73 @@ from django.urls import reverse
 from django.utils import timezone
 
 User = get_user_model()
+
+
+def _send_mail_safe(subject, message, from_email, recipient_list):
+    """Send email without crashing the request if SMTP fails (e.g. no
+    EMAIL_HOST_PASSWORD configured yet)."""
+    try:
+        send_mail(subject, message, from_email, recipient_list)
+    except Exception:
+        pass
+
+
+# Section headings commonly found in academic papers. Matching is case-insensitive
+# and tolerates optional numbering (e.g. "1. Introduction" or "3.2 Methods").
+_SECTION_HEADING_RE = re.compile(
+    r'^(?:\d+(?:\.\d+)?[.)]\s*)?('
+    r'abstract|introduction|background|literature\s+review|related\s+work|'
+    r'methodology|methods?|materials?\s+and\s+methods|experimental\s+(?:setup|design|procedure)|'
+    r'results?|findings|discussion|conclusion(?:s)?|'
+    r'acknowledg(?:e)?ments?|references?|appendix(?:es)?|'
+    r'funding|data\s+availability|conflict\s+of\s+interest|declarations?|'
+    r'abbreviations?|author\s+contributions?'
+    r')\s*:?\s*$',
+    re.IGNORECASE,
+)
+
+
+def parse_article_blocks(content):
+    """
+    Split an article's plain-text body into a list of blocks that can be rendered
+    in a journal layout. Returns a list of dicts:
+
+        {'type': 'heading',   'number': 1, 'text': 'Introduction'}
+        {'type': 'paragraph', 'number': None, 'text': '...'}
+
+    A paragraph is treated as a section heading when it is a single short line
+    that matches a known section name, or starts with an uppercase letter and
+    does not end in sentence punctuation. Text is HTML-escaped (callers should
+    render it with ``|safe``).
+    """
+    blocks = []
+    section_num = 0
+
+    paragraphs = re.split(r'\n\s*\n', content.strip())
+    for para in paragraphs:
+        para = para.strip()
+        if not para:
+            continue
+
+        lines = para.splitlines()
+        single_line = len(lines) == 1
+        short = len(para) <= 80
+        no_end_punct = not para.endswith(('.', '!', '?', ':', ';', ','))
+
+        is_heading = (
+            single_line and short and no_end_punct
+            and (_SECTION_HEADING_RE.match(para) or para[0].isupper())
+        )
+
+        if is_heading:
+            section_num += 1
+            blocks.append({'type': 'heading', 'number': section_num, 'text': escape(para)})
+        else:
+            # Join single newlines into <br/> so paragraphs keep their line breaks.
+            escaped = escape('<br/>'.join(line.strip() for line in lines if line.strip()))
+            blocks.append({'type': 'paragraph', 'number': None, 'text': escaped})
+
+    return blocks
 
 
 def notify_reviewer_invitation(invitation):
@@ -44,7 +114,7 @@ Thank you for your contribution to the peer review process.
 Best regards,
 Instructor: Journal of Computer Science and Applications
 """
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [reviewer.email])
+    _send_mail_safe(subject, message, settings.DEFAULT_FROM_EMAIL, [reviewer.email])
 
 
 def notify_editor_invitation_response(invitation):
@@ -73,7 +143,7 @@ Status: {status_text.capitalize()}
 Best regards,
 Instructor: Journal of Computer Science and Applications
 """
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [editor.email])
+    _send_mail_safe(subject, message, settings.DEFAULT_FROM_EMAIL, [editor.email])
 
 
 def notify_editors_new_submission(article):
@@ -104,7 +174,7 @@ Author: {author_label}
 You can review it here:
 {settings.BASE_URL or 'http://localhost:8000'}{reverse('article_detail', args=[article.pk])}
 """
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, editor_emails)
+    _send_mail_safe(subject, message, settings.DEFAULT_FROM_EMAIL, editor_emails)
 
 
 def notify_author_decision(article, decision):
@@ -139,10 +209,24 @@ Status: Rejected
 You can view the reviewer comments here:
 {settings.BASE_URL or 'http://localhost:8000'}{reverse('article_detail', args=[article.pk])}
 """
+    elif decision == 'published':
+        subject = f'[Instructor: Journal of Computer Science and Applications] Article Published: {article.title}'
+        published_on = article.published_date.strftime('%B %d, %Y') if article.published_date else 'Today'
+        message = f"""
+Congratulations! Your article has been published in the journal.
+
+Manuscript Number: {ms}
+Title: {article.title}
+Status: Published
+Published on: {published_on}
+
+You can now download your published article (journal format) here:
+{settings.BASE_URL or 'http://localhost:8000'}{reverse('download_article_pdf', args=[article.pk])}
+"""
     else:
         return
     
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [author.email])
+    _send_mail_safe(subject, message, settings.DEFAULT_FROM_EMAIL, [author.email])
 
 
 def send_deadline_reminder(invitation, milestone):
@@ -222,4 +306,4 @@ Thank you for your contribution to the peer review process.
 Best regards,
 Instructor: Journal of Computer Science and Applications
 """
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [reviewer.email])
+    _send_mail_safe(subject, message, settings.DEFAULT_FROM_EMAIL, [reviewer.email])

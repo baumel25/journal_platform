@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from .models import Article, Review, ReviewInvitation, CoAuthor
 from .forms import ArticleForm, ReviewForm, CoAuthorFormSet
 from .utils import notify_editors_new_submission, notify_author_decision, notify_reviewer_invitation, notify_editor_invitation_response
+from .journal_pdf import generate_journal_pdf
 
 User = get_user_model()
 
@@ -219,6 +220,20 @@ def reject_article(request, pk):
     article.save()
     notify_author_decision(article, 'rejected')
     messages.warning(request, f'Article "{article.title}" has been rejected. Author has been notified.')
+    return redirect('article_detail', pk=article.pk)
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def publish_article(request, pk):
+    """Publish a fully approved article. Only editors can do this."""
+    article = get_object_or_404(Article, pk=pk)
+    if article.status != 'approved':
+        messages.error(request, 'Only fully approved articles can be published.')
+        return redirect('article_detail', pk=article.pk)
+    article.editor = request.user
+    article.publish()
+    notify_author_decision(article, 'published')
+    messages.success(request, f'Article "{article.title}" has been published! The author can now download it online.')
     return redirect('article_detail', pk=article.pk)
 
 @login_required
@@ -693,13 +708,12 @@ def editor_reject_review(request, pk):
 
 @login_required
 def download_article_pdf(request, pk):
-    """Download an article as PDF"""
+    """Download an article as PDF (ReportLab; no xhtml2pdf dependency)."""
     from django.http import HttpResponse
-    from django.template.loader import get_template
-    from xhtml2pdf import pisa
-    
+    from django.utils.text import slugify
+
     article = get_object_or_404(Article, pk=pk)
-    
+
     # Check permissions
     can_view = False
     if request.user == article.author:
@@ -717,38 +731,21 @@ def download_article_pdf(request, pk):
                 messages.error(request, 'You only have abstract-only access. Full document download is not available.')
                 return redirect('article_detail', pk=article.pk)
             can_view = True
-    
+
     if not can_view:
         messages.error(request, 'You do not have permission to download this article.')
         return redirect('dashboard')
-    
-    # Prepare context for the PDF template
-    is_author_viewing = (request.user == article.author)
-    show_author_info = not article.is_anonymous or is_author_viewing
-    
-    context = {
-        'article': article,
-        'user': request.user,
-        'show_author_info': show_author_info,
-        'is_author_viewing': is_author_viewing,
-        'date': timezone.now(),
-    }
-    
-    # Render the HTML template
-    template = get_template('articles/article_pdf.html')
-    html = template.render(context)
-    
-    # Create the PDF response
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="article_{article.id}_{article.title}.pdf"'
-    
-    # Generate the PDF
-    pisa_status = pisa.CreatePDF(html, dest=response)
-    
-    if pisa_status.err:
-        return HttpResponse('Error generating PDF', status=500)
-    
-    return response
+
+    # Published articles are produced in the standard two-column journal layout.
+    if article.status == 'published':
+        pdf_bytes = generate_journal_pdf(article)
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        safe_title = slugify(article.title) or f'article-{article.id}'
+        response['Content-Disposition'] = f'attachment; filename="{safe_title}.pdf"'
+        return response
+
+    # Non-published articles: simple ReportLab working version.
+    return download_article_pdf_simple(request, pk)
 # Alternative version using ReportLab
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle

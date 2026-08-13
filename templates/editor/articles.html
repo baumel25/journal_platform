@@ -25,7 +25,10 @@
                 <td>{{ article.created_at|date:"M d, Y" }}</td>
                 <td>
                     <a href="{% url 'article_detail' article.pk %}" class="action-btn btn-view">View</a>
-                    <a href="{% url 'download_article_pdf' article.pk %}" class="action-btn btn-view" style="background: #dc2626;">PDF</a>
+                    <a href="{% url 'download_article_pdf' article.pk %}" class="action-btn btn-view" style="background: #dc2626;">{% if article.status == 'published' %}Journal PDF{% else %}PDF{% endif %}</a>
+                    {% if article.status == 'approved' %}
+                    <a href="{% url 'publish_article' article.pk %}" class="action-btn btn-view" style="background: #16a34a;">Publish</a>
+                    {% endif %}
                     <a href="{% url 'editor_article_edit' article.pk %}" class="action-btn btn-edit">Edit</a>
                 </td>
             </tr>

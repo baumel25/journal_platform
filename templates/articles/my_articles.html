@@ -42,6 +42,11 @@
                             <a href="{% url 'article_detail' article.pk %}" class="btn btn-outline-primary btn-sm w-100">
                                 <i class="bi bi-eye me-1"></i>View Details
                             </a>
+                            {% if article.status == 'published' %}
+                            <a href="{% url 'download_article_pdf' article.pk %}" class="btn btn-primary btn-sm w-100 mt-2">
+                                <i class="bi bi-download me-1"></i>Download Published PDF
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

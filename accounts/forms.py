@@ -24,7 +24,7 @@ class RegistrationForm(UserCreationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'bio', 'profile_picture', 'whatsapp']
+        fields = ['username', 'email', 'bio', 'profile_picture', 'whatsapp', 'affiliation']
         widgets = {
             'bio': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Tell us about yourself...'}),
             'whatsapp': forms.TextInput(attrs={'placeholder': '+2250123456789'}),

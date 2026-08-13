@@ -81,6 +81,18 @@ a { text-decoration: none; }
     color: var(--accent);
 }
 
+.navbar-logo {
+    height: 44px;
+    width: auto;
+    display: block;
+}
+
+@media (max-width: 576px) {
+    .navbar-logo {
+        height: 34px;
+    }
+}
+
 .nav-link {
     color: var(--text-secondary) !important;
     font-weight: 500;

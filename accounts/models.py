@@ -12,6 +12,7 @@ class CustomUser(AbstractUser):
     bio = models.TextField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     whatsapp = models.CharField(max_length=20, blank=True, null=True, help_text='WhatsApp number with country code, e.g. +2250123456789')
+    affiliation = models.CharField(max_length=200, blank=True, null=True, help_text='Institution / department shown on published articles, e.g. Department of Computer Science, University of ...')
     
     def __str__(self):
         return f"{self.username} ({self.role})"
