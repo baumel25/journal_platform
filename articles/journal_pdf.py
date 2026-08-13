@@ -27,7 +27,12 @@ from reportlab.platypus import (
     NextPageTemplate,
     PageTemplate,
     Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
 )
+from pypdf import PdfReader
 
 from .utils import parse_article_blocks
 
@@ -48,6 +53,18 @@ START_PAGE = 1
 # Journal logo (contains the journal name) shown at the top of the first page.
 LOGO_PATH = os.path.join(settings.BASE_DIR, "static", "defaults", "logo.png")
 LOGO_WIDTH = 300  # points (scaled to fit the title block)
+
+# ---------------------------------------------------------------------------
+# Editorial board — edit these names to match the real board
+# ---------------------------------------------------------------------------
+EDITORIAL_BOARD = {
+    "Editor-in-Chief": ["Prof. [Name]"],
+    "Associate Editors": ["[Name 1]", "[Name 2]", "[Name 3]"],
+    "Editorial Board Members": [
+        "[Name 1]", "[Name 2]", "[Name 3]", "[Name 4]", "[Name 5]", "[Name 6]",
+    ],
+    "Advisory Board": ["[Name 1]", "[Name 2]", "[Name 3]"],
+}
 
 # ---------------------------------------------------------------------------
 # Page geometry (A4)
@@ -116,6 +133,10 @@ def _build_styles():
             "reference", fontName="Times-Roman", fontSize=7.5, leading=10,
             alignment=TA_LEFT, textColor=BLACK, spaceAfter=3,
             leftIndent=12, firstLineIndent=-12,
+        ),
+        "published": ParagraphStyle(
+            "published", fontName="Times-Bold", fontSize=8, leading=10,
+            alignment=TA_CENTER, textColor=PRIMARY, spaceBefore=2, spaceAfter=5,
         ),
     }
 
@@ -206,6 +227,12 @@ def _build_title_flowables(article, styles):
             Paragraph(f"<i>Corresponding author: {_esc(author.email)}</i>", styles["correspondence"])
         )
 
+    # Publication date (month and year) as required by the journal
+    if article.published_date:
+        flowables.append(
+            Paragraph(f"Published: {article.published_date.strftime('%B %Y')}", styles["published"])
+        )
+
     flowables.append(Paragraph("ABSTRACT", styles["abstract_label"]))
     flowables.append(Paragraph(_esc(article.abstract), styles["abstract"]))
 
@@ -288,6 +315,164 @@ def generate_journal_pdf(article):
     story = list(title_flowables)
     story.append(NextPageTemplate("body"))
     story.extend(_build_body_flowables(article, styles))
+
+    doc.build(story, canvasmaker=_NumberedCanvas)
+    return buffer.getvalue()
+
+
+def generate_cover_pdf():
+    """Single-page journal cover: logo + journal title + volume/issue/year."""
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    W, H = A4
+
+    # Decorative double border
+    c.setStrokeColor(PRIMARY)
+    c.setLineWidth(2)
+    c.rect(1.0 * cm, 1.0 * cm, W - 2.0 * cm, H - 2.0 * cm)
+    c.setStrokeColor(RULE)
+    c.setLineWidth(0.6)
+    c.rect(1.2 * cm, 1.2 * cm, W - 2.4 * cm, H - 2.4 * cm)
+
+    # Journal logo (contains the journal name + tagline), centered near the top
+    logo_w = 16 * cm
+    logo_h = 0.0
+    if os.path.exists(LOGO_PATH):
+        with PILImage.open(LOGO_PATH) as im:
+            iw, ih = im.size
+        logo_h = logo_w * ih / float(iw)
+        c.drawImage(LOGO_PATH, (W - logo_w) / 2.0, H - 4 * cm - logo_h, width=logo_w, height=logo_h)
+
+    # Journal title + issue meta below the logo
+    title_y = H - 4 * cm - logo_h - 1.6 * cm
+    c.setFillColor(PRIMARY)
+    c.setFont("Times-Bold", 24)
+    c.drawCentredString(W / 2.0, title_y, JOURNAL_NAME)
+    c.setFillColor(GRAY)
+    c.setFont("Times-Roman", 11)
+    c.drawCentredString(W / 2.0, title_y - 0.9 * cm, f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} {JOURNAL_YEAR}")
+    c.drawCentredString(W / 2.0, title_y - 1.5 * cm, JOURNAL_ISSN)
+
+    # Tagline near the bottom
+    c.setFillColor(PRIMARY)
+    c.setFont("Times-Italic", 12)
+    c.drawCentredString(W / 2.0, 2.2 * cm, "RESEARCH  \u2022  INNOVATION  \u2022  IMPACT")
+
+    c.showPage()
+    c.save()
+    return buffer.getvalue()
+
+
+def _pdf_page_count(pdf_bytes):
+    """Return the number of pages in a generated PDF (best effort)."""
+    try:
+        return len(PdfReader(BytesIO(pdf_bytes)).pages)
+    except Exception:
+        return 1
+
+
+def generate_toc_pdf(articles):
+    """Table of contents for an issue: lists articles with real page ranges."""
+    styles = _build_styles()
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=A4,
+        leftMargin=ML, rightMargin=MR, topMargin=MT, bottomMargin=MB,
+        title=f"{JOURNAL_NAME} - Table of Contents",
+    )
+
+    toc_title = ParagraphStyle(
+        "toc_title", fontName="Times-Bold", fontSize=16, leading=20,
+        alignment=TA_CENTER, textColor=PRIMARY, spaceAfter=4,
+    )
+    toc_sub = ParagraphStyle(
+        "toc_sub", fontName="Times-Roman", fontSize=10, leading=13,
+        alignment=TA_CENTER, textColor=GRAY, spaceAfter=14,
+    )
+
+    story = [
+        Paragraph(JOURNAL_NAME, toc_title),
+        Paragraph(f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} {JOURNAL_YEAR}  \u2022  TABLE OF CONTENTS", toc_sub),
+    ]
+
+    # Compute page ranges by generating each published article's journal PDF.
+    rows = []
+    start = START_PAGE
+    for index, article in enumerate(articles, start=1):
+        try:
+            count = _pdf_page_count(generate_journal_pdf(article))
+        except Exception:
+            count = 1
+        end = start + count - 1
+        author = article.author.get_full_name() or article.author.username
+        rows.append([
+            str(index),
+            f"<b>{_esc(article.title)}</b><br/><font size=7.5 color=#444444>{_esc(author)}</font>",
+            f"{start}\u2013{end}",
+        ])
+        start = end + 1
+
+    if rows:
+        table = Table(
+            rows,
+            colWidths=[1.2 * cm, CONTENT_W - 1.2 * cm - 2.2 * cm, 2.2 * cm],
+            repeatRows=0,
+        )
+        table.setStyle(TableStyle([
+            ("FONTNAME", (0, 0), (-1, -1), "Times-Roman"),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ("LINEBELOW", (0, 0), (-1, -2), 0.5, colors.HexColor("#dddddd")),
+            ("TEXTCOLOR", (2, 0), (2, -1), GRAY),
+            ("ALIGN", (2, 0), (2, -1), "RIGHT"),
+        ]))
+        story.append(table)
+    else:
+        story.append(Paragraph("No published articles yet.", styles["body"]))
+
+    doc.build(story, canvasmaker=_NumberedCanvas)
+    return buffer.getvalue()
+
+
+def generate_editorial_board_pdf():
+    """Editorial board page for the journal."""
+    styles = _build_styles()
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=A4,
+        leftMargin=ML, rightMargin=MR, topMargin=MT, bottomMargin=MB,
+        title=f"{JOURNAL_NAME} - Editorial Board",
+    )
+
+    board_title = ParagraphStyle(
+        "board_title", fontName="Times-Bold", fontSize=16, leading=20,
+        alignment=TA_CENTER, textColor=PRIMARY, spaceAfter=4,
+    )
+    board_sub = ParagraphStyle(
+        "board_sub", fontName="Times-Roman", fontSize=10, leading=13,
+        alignment=TA_CENTER, textColor=GRAY, spaceAfter=16,
+    )
+    role_style = ParagraphStyle(
+        "role_style", fontName="Times-Bold", fontSize=11, leading=14,
+        textColor=PRIMARY, spaceBefore=10, spaceAfter=4,
+    )
+    member_style = ParagraphStyle(
+        "member_style", fontName="Times-Roman", fontSize=10, leading=14,
+        textColor=BLACK, leftIndent=8,
+    )
+
+    story = [
+        Paragraph(JOURNAL_NAME, board_title),
+        Paragraph("EDITORIAL BOARD", board_sub),
+    ]
+
+    for role, members in EDITORIAL_BOARD.items():
+        story.append(Paragraph(role, role_style))
+        for member in members:
+            story.append(Paragraph(member, member_style))
+        story.append(Spacer(1, 0.3 * cm))
 
     doc.build(story, canvasmaker=_NumberedCanvas)
     return buffer.getvalue()

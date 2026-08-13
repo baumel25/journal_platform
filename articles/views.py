@@ -7,7 +7,12 @@ from django.contrib.auth import get_user_model
 from .models import Article, Review, ReviewInvitation, CoAuthor
 from .forms import ArticleForm, ReviewForm, CoAuthorFormSet
 from .utils import notify_editors_new_submission, notify_author_decision, notify_reviewer_invitation, notify_editor_invitation_response
-from .journal_pdf import generate_journal_pdf
+from .journal_pdf import (
+    generate_journal_pdf,
+    generate_cover_pdf,
+    generate_toc_pdf,
+    generate_editorial_board_pdf,
+)
 
 User = get_user_model()
 
@@ -816,4 +821,32 @@ def download_article_pdf_simple(request, pk):
     buffer.seek(0)
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="article_{article.id}.pdf"'
+    return response
+
+
+@login_required
+def download_journal_cover(request):
+    """Download the journal cover page (logo + journal title)."""
+    pdf_bytes = generate_cover_pdf()
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="journal-cover.pdf"'
+    return response
+
+
+@login_required
+def download_journal_toc(request):
+    """Download the journal table of contents (published articles + page ranges)."""
+    articles = Article.objects.filter(status='published').order_by('published_date')
+    pdf_bytes = generate_toc_pdf(articles)
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="journal-table-of-contents.pdf"'
+    return response
+
+
+@login_required
+def download_editorial_board(request):
+    """Download the journal editorial board page."""
+    pdf_bytes = generate_editorial_board_pdf()
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="journal-editorial-board.pdf"'
     return response

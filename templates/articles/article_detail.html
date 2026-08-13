@@ -193,6 +193,23 @@
         
         <!-- Sidebar - Reviews -->
         <div class="col-lg-4">
+            <!-- Journal Documents -->
+            <div class="card-modern mb-3">
+                <div class="card-body p-3">
+                    <h5 class="fw-bold mb-2"><i class="bi bi-journal-bookmark me-2 text-primary"></i>Journal Documents</h5>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'download_journal_cover' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+                            <i class="bi bi-file-earmark-image me-1"></i>Cover Page
+                        </a>
+                        <a href="{% url 'download_journal_toc' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+                            <i class="bi bi-list-ol me-1"></i>Table of Contents
+                        </a>
+                        <a href="{% url 'download_editorial_board' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+                            <i class="bi bi-people me-1"></i>Editorial Board
+                        </a>
+                    </div>
+                </div>
+            </div>
             {% if reviews %}
                 <h5 class="fw-bold mb-3"><i class="bi bi-chat-quote me-2"></i>Reviews ({{ reviews|length }})</h5>
                 
