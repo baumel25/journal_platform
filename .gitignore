@@ -4,6 +4,7 @@ __pycache__/
 *.pyc
 db.sqlite3
 *.bak
+sqlite_data_dump.json
 media/profile_pics/
 media/article_files/
 .env

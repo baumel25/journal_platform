@@ -9,6 +9,7 @@ cryptography==48.0.0
 cssselect2==0.9.0
 Django==6.0.5
 dj-database-url==2.3.0
+python-dotenv==1.1.0
 fonttools==4.63.0
 freetype-py==2.5.1
 gunicorn==26.0.0

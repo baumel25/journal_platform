@@ -4,6 +4,14 @@ from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load local environment variables from .env (does NOT override real env vars).
+# Optional: skip silently if python-dotenv isn't installed in this environment.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / '.env')
+except ImportError:
+    pass
+
 # Production settings from environment variables
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', get_random_secret_key())
 
