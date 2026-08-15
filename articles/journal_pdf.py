@@ -320,13 +320,38 @@ def generate_journal_pdf(article):
     return buffer.getvalue()
 
 
-def generate_cover_pdf():
-    """Front cover of the journal issue.
+# Approved cover artwork (full front+spine+back layout). When present it is
+# used verbatim so the downloaded cover matches the design exactly.
+COVER_IMAGE_PATH = os.path.join(settings.BASE_DIR, "static", "defaults", "cover_design.png")
 
-    Masthead ("INSTRUCTOR"), English + French journal name, volume/issue and
-    date, the journal logo, and the University of Bamenda / Higher Teacher
-    Training College-Bambili branding.
+
+def generate_cover_pdf():
+    """Cover page PDF.
+
+    Uses the approved cover artwork (static/defaults/cover_design.png) as-is,
+    so the cover is identical to the design. Falls back to a drawn cover if
+    the artwork is missing.
     """
+    if os.path.exists(COVER_IMAGE_PATH):
+        with PILImage.open(COVER_IMAGE_PATH) as im:
+            iw, ih = im.size
+        # Page is sized to the artwork's aspect ratio (no crop / no letterbox)
+        page_w = A4[1]
+        page_h = page_w * ih / float(iw)
+        pagesize = (page_w, page_h)
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=pagesize)
+        c.drawImage(COVER_IMAGE_PATH, 0, 0, width=page_w, height=page_h,
+                    preserveAspectRatio=False)
+        c.showPage()
+        c.save()
+        return buffer.getvalue()
+
+    return _draw_cover_fallback()
+
+
+def _draw_cover_fallback():
+    """Drawn cover, used only if the cover artwork is missing."""
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     W, H = A4
