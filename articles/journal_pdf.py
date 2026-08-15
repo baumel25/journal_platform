@@ -151,20 +151,16 @@ def _measure(flowables, width):
 
 
 def _draw_header(canv, doc):
-    """Running header drawn at the top of every page."""
+    """Running header: journal name (left) and ISSN (right), like the printed page."""
     canv.saveState()
-    y = PAGE_H - 0.95 * cm
-    canv.setFont("Times-Roman", 7.5)
+    y = PAGE_H - 1.0 * cm
+    canv.setFont("Times-Roman", 8)
     canv.setFillColor(GRAY)
     canv.drawString(ML, y, JOURNAL_NAME)
-    canv.drawCentredString(
-        PAGE_W / 2.0, y,
-        getattr(canv, "PUB_LABEL", f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} {JOURNAL_YEAR}"),
-    )
     canv.drawRightString(PAGE_W - MR, y, JOURNAL_ISSN)
     canv.setStrokeColor(RULE)
-    canv.setLineWidth(0.7)
-    canv.line(ML, y - 0.3 * cm, PAGE_W - MR, y - 0.3 * cm)
+    canv.setLineWidth(0.6)
+    canv.line(ML, y - 0.25 * cm, PAGE_W - MR, y - 0.25 * cm)
     canv.restoreState()
 
 
@@ -269,23 +265,14 @@ def _build_body_flowables(article, styles):
 
 def generate_journal_pdf(article):
     """
-    Generate the two-column journal PDF for a published article and return it
-    as bytes.
+    Generate the article PDF in the journal's printed format:
+    header (journal name + ISSN), centered blue title, authors, affiliations,
+    corresponding author, boxed abstract + keywords, numbered sections, and a
+    footer with URL, volume/issue/month/year and the article page range.
     """
     styles = _build_styles()
-
-    # --- Title block height is measured so long abstracts never overflow ---
-    title_flowables = _build_title_flowables(article, styles)
-    title_height = min(
-        _measure(title_flowables, CONTENT_W) + 0.6 * cm,
-        COL_H - 2.5 * cm,
-    )
-    body_top = PAGE_H - MT
-    title_bottom = body_top - title_height
-    body_height = title_bottom - MB
-
     buffer = BytesIO()
-    doc = BaseDocTemplate(
+    doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
         leftMargin=ML, rightMargin=MR, topMargin=MT, bottomMargin=MB,
@@ -293,37 +280,46 @@ def generate_journal_pdf(article):
         author=article.author.get_full_name() or article.author.username,
     )
 
-    first_page = PageTemplate(
-        id="first",
-        frames=[
-            Frame(ML, title_bottom, CONTENT_W, title_height,
-                  id="title_frame", leftPadding=0, rightPadding=0,
-                  topPadding=0, bottomPadding=0),
-            Frame(ML, MB, COL_W, body_height,
-                  id="col1", leftPadding=0, rightPadding=0,
-                  topPadding=0, bottomPadding=0),
-            Frame(ML + COL_W + GUTTER, MB, COL_W, body_height,
-                  id="col2", leftPadding=0, rightPadding=0,
-                  topPadding=0, bottomPadding=0),
-        ],
-        onPage=_draw_header,
-    )
-    body_page = PageTemplate(
-        id="body",
-        frames=[
-            Frame(ML, MB, COL_W, COL_H,
-                  id="col1", leftPadding=0, rightPadding=0,
-                  topPadding=0, bottomPadding=0),
-            Frame(ML + COL_W + GUTTER, MB, COL_W, COL_H,
-                  id="col2", leftPadding=0, rightPadding=0,
-                  topPadding=0, bottomPadding=0),
-        ],
-        onPage=_draw_header,
-    )
-    doc.addPageTemplates([first_page, body_page])
+    author = article.author
+    name = author.get_full_name() or author.username
 
-    story = list(title_flowables)
-    story.append(NextPageTemplate("body"))
+    story = []
+
+    # -- Title block (single column, like the printed journal) --
+    story.append(Paragraph(_esc(article.title), styles["title"]))
+    story.append(Paragraph(_esc(name), styles["authors"]))
+    if author.affiliation:
+        story.append(Paragraph(_esc(author.affiliation), styles["affiliations"]))
+    if author.email:
+        story.append(
+            Paragraph(f"* Corresponding Author: {_esc(author.email)}", styles["correspondence"])
+        )
+    if article.published_date:
+        story.append(
+            Paragraph(f"Published: {article.published_date.strftime('%B %Y')}", styles["published"])
+        )
+
+    # -- Boxed abstract + keywords --
+    abstract_flowables = [
+        Paragraph("Abstract", styles["abstract_label"]),
+        Paragraph(_esc(article.abstract), styles["abstract"]),
+    ]
+    if article.keywords:
+        abstract_flowables.append(
+            Paragraph(f"<b>Keywords:</b> {_esc(article.keywords)}", styles["keywords"])
+        )
+    abstract_table = Table([[abstract_flowables]], colWidths=[CONTENT_W])
+    abstract_table.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.8, RULE),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+    story.append(abstract_table)
+    story.append(Spacer(1, 0.6 * cm))
+
+    # -- Body: numbered sections + paragraphs --
     story.extend(_build_body_flowables(article, styles))
 
     # Publication month + year on every page (matches the printed journal format)
@@ -334,7 +330,13 @@ def generate_journal_pdf(article):
         )
     else:
         _NumberedCanvas.PUB_LABEL = f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} {JOURNAL_YEAR}"
-    doc.build(story, canvasmaker=_NumberedCanvas)
+
+    doc.build(
+        story,
+        canvasmaker=_NumberedCanvas,
+        onFirstPage=_draw_header,
+        onLaterPages=_draw_header,
+    )
     return buffer.getvalue()
 
 
