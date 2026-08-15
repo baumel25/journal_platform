@@ -157,7 +157,10 @@ def _draw_header(canv, doc):
     canv.setFont("Times-Roman", 7.5)
     canv.setFillColor(GRAY)
     canv.drawString(ML, y, JOURNAL_NAME)
-    canv.drawCentredString(PAGE_W / 2.0, y, f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} {JOURNAL_YEAR}")
+    canv.drawCentredString(
+        PAGE_W / 2.0, y,
+        getattr(canv, "PUB_LABEL", f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} {JOURNAL_YEAR}"),
+    )
     canv.drawRightString(PAGE_W - MR, y, JOURNAL_ISSN)
     canv.setStrokeColor(RULE)
     canv.setLineWidth(0.7)
@@ -166,7 +169,14 @@ def _draw_header(canv, doc):
 
 
 class _NumberedCanvas(canvas.Canvas):
-    """Standard trick: lets the footer show the total page count."""
+    """Standard trick: lets the footer show the total page count.
+
+    PUB_LABEL holds the volume/issue/publication-date line; it is set per
+    document (e.g. "VOLUME 1 ISSUE 2 AUGUST 2026") so the month and year of
+    publication appear on every page, matching the journal's printed format.
+    """
+
+    PUB_LABEL = f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} {JOURNAL_YEAR}"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -185,15 +195,15 @@ class _NumberedCanvas(canvas.Canvas):
         super().save()
 
     def _draw_footer(self, total):
-        """Footer with article page range (e.g. 1-6) and journal URL."""
+        """Footer with journal URL, volume/issue/date, and page range."""
         first_page = START_PAGE
         last_page = START_PAGE + total - 1
         y = 1.0 * cm
         self.setFont("Times-Roman", 7)
         self.setFillColor(GRAY)
         self.drawString(ML, y, JOURNAL_URL)
-        self.drawCentredString(PAGE_W / 2.0, y, f"{first_page}\u2013{last_page}")
-        self.drawRightString(PAGE_W - MR, y, f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} {JOURNAL_YEAR}")
+        self.drawCentredString(PAGE_W / 2.0, y, self.PUB_LABEL)
+        self.drawRightString(PAGE_W - MR, y, f"{first_page}\u2013{last_page}")
         self.setStrokeColor(RULE)
         self.setLineWidth(0.7)
         self.line(ML, y + 0.35 * cm, PAGE_W - MR, y + 0.35 * cm)
@@ -316,6 +326,14 @@ def generate_journal_pdf(article):
     story.append(NextPageTemplate("body"))
     story.extend(_build_body_flowables(article, styles))
 
+    # Publication month + year on every page (matches the printed journal format)
+    if article.published_date:
+        _NumberedCanvas.PUB_LABEL = (
+            f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} "
+            f"{article.published_date.strftime('%B').upper()} {JOURNAL_YEAR}"
+        )
+    else:
+        _NumberedCanvas.PUB_LABEL = f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} {JOURNAL_YEAR}"
     doc.build(story, canvasmaker=_NumberedCanvas)
     return buffer.getvalue()
 
@@ -489,6 +507,7 @@ def generate_toc_pdf(articles):
     else:
         story.append(Paragraph("No published articles yet.", styles["body"]))
 
+    _NumberedCanvas.PUB_LABEL = f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} {JOURNAL_YEAR}"
     doc.build(story, canvasmaker=_NumberedCanvas)
     return buffer.getvalue()
 
@@ -531,5 +550,6 @@ def generate_editorial_board_pdf():
             story.append(Paragraph(member, member_style))
         story.append(Spacer(1, 0.3 * cm))
 
+    _NumberedCanvas.PUB_LABEL = f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} {JOURNAL_YEAR}"
     doc.build(story, canvasmaker=_NumberedCanvas)
     return buffer.getvalue()
