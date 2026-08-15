@@ -321,42 +321,74 @@ def generate_journal_pdf(article):
 
 
 def generate_cover_pdf():
-    """Single-page journal cover: logo + journal title + volume/issue/year."""
+    """Front cover of the journal issue.
+
+    Masthead ("INSTRUCTOR"), English + French journal name, volume/issue and
+    date, the journal logo, and the University of Bamenda / Higher Teacher
+    Training College-Bambili branding.
+    """
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     W, H = A4
 
-    # Decorative double border
-    c.setStrokeColor(PRIMARY)
-    c.setLineWidth(2)
-    c.rect(1.0 * cm, 1.0 * cm, W - 2.0 * cm, H - 2.0 * cm)
-    c.setStrokeColor(RULE)
-    c.setLineWidth(0.6)
-    c.rect(1.2 * cm, 1.2 * cm, W - 2.4 * cm, H - 2.4 * cm)
+    GOLD = colors.HexColor("#c9a227")
 
-    # Journal logo (contains the journal name + tagline), centered near the top
-    logo_w = 16 * cm
-    logo_h = 0.0
+    # -- Background: soft off-white --
+    c.setFillColor(colors.HexColor("#f5f5f2"))
+    c.rect(0, 0, W, H, stroke=0, fill=1)
+
+    # -- Decorative double border --
+    c.setStrokeColor(PRIMARY)
+    c.setLineWidth(2.4)
+    c.rect(0.9 * cm, 0.9 * cm, W - 1.8 * cm, H - 1.8 * cm)
+    c.setStrokeColor(GOLD)
+    c.setLineWidth(0.7)
+    c.rect(1.15 * cm, 1.15 * cm, W - 2.3 * cm, H - 2.3 * cm)
+
+    # -- Masthead --
+    c.setFillColor(GOLD)
+    c.setFont("Times-Bold", 46)
+    c.drawCentredString(W / 2.0, H - 4.7 * cm, "INSTRUCTOR")
+    c.setFillColor(PRIMARY)
+    c.setFont("Times-Bold", 15.5)
+    c.drawCentredString(W / 2.0, H - 6.0 * cm, "Journal of Computer Science and Applications")
+    c.setFillColor(GRAY)
+    c.setFont("Times-Italic", 11.5)
+    c.drawCentredString(W / 2.0, H - 6.7 * cm, "Revue d'Informatique et Applications")
+
+    # -- Volume / issue / date --
+    c.setFillColor(PRIMARY)
+    c.setFont("Times-Bold", 13.5)
+    c.drawCentredString(W / 2.0, H - 7.7 * cm, "Vol. 1, Number 2")
+    c.setFillColor(GRAY)
+    c.setFont("Times-Roman", 11)
+    c.drawCentredString(W / 2.0, H - 8.4 * cm, "February 2026")
+
+    # -- Journal logo (contains the journal name), centered --
+    logo_w = 12 * cm
     if os.path.exists(LOGO_PATH):
         with PILImage.open(LOGO_PATH) as im:
             iw, ih = im.size
         logo_h = logo_w * ih / float(iw)
-        c.drawImage(LOGO_PATH, (W - logo_w) / 2.0, H - 4 * cm - logo_h, width=logo_w, height=logo_h)
+        c.drawImage(
+            LOGO_PATH, (W - logo_w) / 2.0, H - 10.5 * cm - logo_h,
+            width=logo_w, height=logo_h, preserveAspectRatio=True, mask='auto',
+        )
 
-    # Journal title + issue meta below the logo
-    title_y = H - 4 * cm - logo_h - 1.6 * cm
+    # -- Institution footer --
     c.setFillColor(PRIMARY)
-    c.setFont("Times-Bold", 24)
-    c.drawCentredString(W / 2.0, title_y, JOURNAL_NAME)
+    c.setFont("Times-Bold", 12)
+    c.drawCentredString(W / 2.0, 4.3 * cm, "Higher Teacher Training College \u2013 Bambili")
+    c.setFillColor(GOLD)
+    c.setFont("Times-Bold", 12)
+    c.drawCentredString(W / 2.0, 3.6 * cm, "\u00c9cole Normale Sup\u00e9rieure \u2013 Bambili")
+
+    c.setFillColor(PRIMARY)
+    c.setFont("Times-Bold", 16)
+    c.drawCentredString(W / 2.0, 2.8 * cm, "THE UNIVERSITY OF BAMENDA")
     c.setFillColor(GRAY)
-    c.setFont("Times-Roman", 11)
-    c.drawCentredString(W / 2.0, title_y - 0.9 * cm, f"{JOURNAL_VOLUME} {JOURNAL_ISSUE} {JOURNAL_YEAR}")
-    c.drawCentredString(W / 2.0, title_y - 1.5 * cm, JOURNAL_ISSN)
-
-    # Tagline near the bottom
-    c.setFillColor(PRIMARY)
     c.setFont("Times-Italic", 12)
-    c.drawCentredString(W / 2.0, 2.2 * cm, "RESEARCH  \u2022  INNOVATION  \u2022  IMPACT")
+    c.drawCentredString(W / 2.0, 2.1 * cm, "Universit\u00e9 de Bamenda")
 
     c.showPage()
     c.save()

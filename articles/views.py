@@ -1,6 +1,7 @@
 ﻿from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+from django.http import HttpResponse
 from django.utils import timezone
 from django.db.models import Count
 from django.contrib.auth import get_user_model
@@ -822,6 +823,31 @@ def download_article_pdf_simple(request, pk):
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="article_{article.id}.pdf"'
     return response
+
+
+@login_required
+def journal_cover_preview(request):
+    """Show a rendered preview of the journal cover, with a download button."""
+    cover_png = None
+    try:
+        import base64
+        import pypdfium2 as pdfium
+        from io import BytesIO
+
+        pdf_bytes = generate_cover_pdf()
+        pdf = pdfium.PdfDocument(pdf_bytes)
+        try:
+            page = pdf[0]
+            bitmap = page.render(scale=2)
+            image = bitmap.to_pil().convert("RGB")
+            buf = BytesIO()
+            image.save(buf, format="PNG")
+            cover_png = base64.b64encode(buf.getvalue()).decode("ascii")
+        finally:
+            pdf.close()
+    except Exception:
+        cover_png = None
+    return render(request, 'articles/journal_cover.html', {'cover_png': cover_png})
 
 
 @login_required

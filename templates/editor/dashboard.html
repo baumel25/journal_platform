@@ -41,6 +41,23 @@
     </div>
 </div>
 
+<div class="data-table" style="margin-top: 1.5rem;">
+    <h3 style="padding: 1rem; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="bi bi-journal-bookmark" style="color: #1F3864;"></i> Journal Documents
+    </h3>
+    <div style="padding: 1rem; display: flex; flex-wrap: wrap; gap: 0.6rem;">
+        <a href="{% url 'journal_cover' %}" class="action-btn btn-view">
+            <i class="bi bi-file-earmark-image me-1"></i>Cover Page
+        </a>
+        <a href="{% url 'download_journal_toc' %}" class="action-btn btn-view">
+            <i class="bi bi-list-ol me-1"></i>Table of Contents
+        </a>
+        <a href="{% url 'download_editorial_board' %}" class="action-btn btn-view">
+            <i class="bi bi-people me-1"></i>Editorial Board
+        </a>
+    </div>
+</div>
+
 <div class="data-table">
     <h3 style="padding: 1rem; margin: 0;">Recent Articles</h3>
     <table>
