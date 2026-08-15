@@ -52,7 +52,7 @@ START_PAGE = 1
 
 # Journal logo (contains the journal name) shown at the top of the first page.
 LOGO_PATH = os.path.join(settings.BASE_DIR, "static", "defaults", "logo.png")
-LOGO_WIDTH = 300  # points (scaled to fit the title block)
+LOGO_WIDTH = 150  # points (scaled to fit the title block)
 
 # ---------------------------------------------------------------------------
 # Editorial board — edit these names to match the real board
@@ -365,7 +365,7 @@ def generate_cover_pdf():
     c.drawCentredString(W / 2.0, H - 8.4 * cm, "February 2026")
 
     # -- Journal logo (contains the journal name), centered --
-    logo_w = 12 * cm
+    logo_w = 8 * cm
     if os.path.exists(LOGO_PATH):
         with PILImage.open(LOGO_PATH) as im:
             iw, ih = im.size
