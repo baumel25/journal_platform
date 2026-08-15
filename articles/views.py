@@ -825,16 +825,13 @@ def download_article_pdf_simple(request, pk):
     return response
 
 
-@login_required
-def journal_cover_preview(request):
-    """Show a rendered preview of the journal cover, with a download button."""
-    cover_png = None
+def _pdf_preview_png(pdf_bytes):
+    """Render the first page of a PDF to a base64-encoded PNG (best effort)."""
     try:
         import base64
         import pypdfium2 as pdfium
         from io import BytesIO
 
-        pdf_bytes = generate_cover_pdf()
         pdf = pdfium.PdfDocument(pdf_bytes)
         try:
             page = pdf[0]
@@ -842,12 +839,19 @@ def journal_cover_preview(request):
             image = bitmap.to_pil().convert("RGB")
             buf = BytesIO()
             image.save(buf, format="PNG")
-            cover_png = base64.b64encode(buf.getvalue()).decode("ascii")
+            return base64.b64encode(buf.getvalue()).decode("ascii")
         finally:
             pdf.close()
     except Exception:
-        cover_png = None
-    return render(request, 'articles/journal_cover.html', {'cover_png': cover_png})
+        return None
+
+
+@login_required
+def journal_cover_preview(request):
+    """Show a rendered preview of the journal cover, with a download button."""
+    return render(request, 'articles/journal_cover.html', {
+        'cover_png': _pdf_preview_png(generate_cover_pdf()),
+    })
 
 
 @login_required
@@ -860,6 +864,15 @@ def download_journal_cover(request):
 
 
 @login_required
+def journal_toc_preview(request):
+    """Show a rendered preview of the journal table of contents."""
+    articles = Article.objects.filter(status='published').order_by('published_date')
+    return render(request, 'articles/journal_toc.html', {
+        'toc_png': _pdf_preview_png(generate_toc_pdf(articles)),
+    })
+
+
+@login_required
 def download_journal_toc(request):
     """Download the journal table of contents (published articles + page ranges)."""
     articles = Article.objects.filter(status='published').order_by('published_date')
@@ -867,6 +880,14 @@ def download_journal_toc(request):
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="journal-table-of-contents.pdf"'
     return response
+
+
+@login_required
+def editorial_board_preview(request):
+    """Show a rendered preview of the journal editorial board."""
+    return render(request, 'articles/editorial_board.html', {
+        'board_png': _pdf_preview_png(generate_editorial_board_pdf()),
+    })
 
 
 @login_required

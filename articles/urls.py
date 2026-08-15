@@ -6,8 +6,10 @@ urlpatterns = [
     # Journal documents
     path('journal/cover/', views.journal_cover_preview, name='journal_cover'),
     path('journal/cover/download/', views.download_journal_cover, name='download_journal_cover'),
-    path('journal/toc/', views.download_journal_toc, name='download_journal_toc'),
-    path('journal/editorial-board/', views.download_editorial_board, name='download_editorial_board'),
+    path('journal/toc/', views.journal_toc_preview, name='journal_toc'),
+    path('journal/toc/download/', views.download_journal_toc, name='download_journal_toc'),
+    path('journal/editorial-board/', views.editorial_board_preview, name='editorial_board'),
+    path('journal/editorial-board/download/', views.download_editorial_board, name='download_editorial_board'),
     # Author URLs
     path('create/', views.create_article, name='create_article'),
     path('<int:pk>/', views.article_detail, name='article_detail'),
