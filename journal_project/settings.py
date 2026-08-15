@@ -146,10 +146,10 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Upload limits (forms have their own per-field validation)
-DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
-FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 DATA_UPLOAD_MAX_NUMBER_FILES = 5
-DATA_UPLOAD_MAX_FILE_SIZE = 5242880  # 5MB global max (form validates individually)
+DATA_UPLOAD_MAX_FILE_SIZE = 104857600  # 100MB global max (article documents can be large)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
