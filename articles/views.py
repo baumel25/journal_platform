@@ -742,12 +742,16 @@ def download_article_pdf(request, pk):
         messages.error(request, 'You do not have permission to download this article.')
         return redirect('dashboard')
 
-    # Every article download uses the same printed journal format.
-    pdf_bytes = generate_journal_pdf(article)
-    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-    safe_title = slugify(article.title) or f'article-{article.id}'
-    response['Content-Disposition'] = f'attachment; filename="{safe_title}.pdf"'
-    return response
+    # Published articles are produced in the standard journal layout.
+    if article.status == 'published':
+        pdf_bytes = generate_journal_pdf(article)
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        safe_title = slugify(article.title) or f'article-{article.id}'
+        response['Content-Disposition'] = f'attachment; filename="{safe_title}.pdf"'
+        return response
+
+    # Non-published articles: simple working version (journal format on publish only).
+    return download_article_pdf_simple(request, pk)
 # Alternative version using ReportLab
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
