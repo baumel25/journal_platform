@@ -52,7 +52,7 @@ START_PAGE = 1
 
 # Journal logo (contains the journal name) shown at the top of the first page.
 LOGO_PATH = os.path.join(settings.BASE_DIR, "static", "defaults", "logo.png")
-LOGO_WIDTH = 150  # points (scaled to fit the title block)
+LOGO_WIDTH = 80  # points (scaled to fit the title block)
 
 # ---------------------------------------------------------------------------
 # Editorial board — edit these names to match the real board
@@ -319,8 +319,8 @@ def generate_journal_pdf(article):
 
     # Measure the title block so the two body columns start right below it.
     title_height = min(
-        _measure(title_flowables, CONTENT_W) + 0.6 * cm,
-        COL_H - 2.5 * cm,
+        _measure(title_flowables, CONTENT_W) + 1.2 * cm,
+        COL_H - 1.5 * cm,
     )
     body_top = PAGE_H - MT
     title_bottom = body_top - title_height
