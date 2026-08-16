@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('download-pdf/<int:pk>/', views.download_article_pdf, name='download_article_pdf'),
     # Journal documents
+    path('journal/about/', views.journal_about, name='journal_about'),
     path('journal/cover/', views.journal_cover_preview, name='journal_cover'),
     path('journal/cover/download/', views.download_journal_cover, name='download_journal_cover'),
     path('journal/toc/', views.journal_toc_preview, name='journal_toc'),

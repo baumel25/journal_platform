@@ -1,6 +1,7 @@
 ﻿from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+from django.conf import settings
 from django.http import HttpResponse
 from django.utils import timezone
 from django.db.models import Count
@@ -43,69 +44,76 @@ def create_article(request):
     
     return render(request, 'articles/create_article.html', {'form': form, 'formset': formset})
 
-@login_required
 def article_detail(request, pk):
     article = get_object_or_404(Article, pk=pk)
-    
-    # Check permissions
+    user = request.user
+    is_authenticated = user.is_authenticated
+    is_author_viewing = is_authenticated and (user == article.author)
+
+    # Published articles are public (view-only) so search engines and any
+    # visitor can read them. Non-published articles require login + permission.
     can_view = False
     access_level = 'full'
-    is_author_viewing = (request.user == article.author)
-    
-    if is_author_viewing:
+    if article.status == 'published':
         can_view = True
-    elif request.user.is_editor():
+    elif not is_authenticated:
+        return redirect(f'{settings.LOGIN_URL}?next={request.path}')
+    elif is_author_viewing:
         can_view = True
-    elif request.user.is_reviewer():
+    elif user.is_editor():
+        can_view = True
+    elif user.is_reviewer():
         # Reviewer can only view if they have accepted an invitation for this article
         invitation = ReviewInvitation.objects.filter(
             article=article,
-            reviewer=request.user,
+            reviewer=user,
             status='accepted',
         ).first()
         if invitation:
             can_view = True
             access_level = invitation.access_level
-    
+
     if not can_view:
         messages.error(request, 'You do not have permission to view this article.')
         return redirect('dashboard')
-    
-    # Filter reviews based on user role and editor approval
-    if is_author_viewing:
-        # Author only sees editor-approved reviews (anonymized)
-        reviews = article.reviews.filter(editor_approved=True).select_related('reviewer')
-        anonymous_reviews = []
-        for review in reviews:
-            anonymous_reviews.append({
-                'originality_score': review.originality_score,
-                'significance_score': review.significance_score,
-                'methodology_score': review.methodology_score,
-                'clarity_score': review.clarity_score,
-                'comments_to_author': review.comments_to_author,
-                'recommendation': review.recommendation,
-                'submitted_date': review.submitted_date,
-                'is_anonymous': True,
-            })
-        reviews = anonymous_reviews
-    elif request.user.is_editor():
-        # Editor sees all reviews (including pending approval)
-        reviews = article.reviews.select_related('reviewer').all()
-    else:
-        # Reviewer sees only their own submitted reviews
-        reviews = article.reviews.filter(reviewer=request.user).select_related('reviewer')
-    
-    # Check if the current user (reviewer) has already submitted a review
+
+    # Reviews are only shown to logged-in users (with their role's visibility)
+    reviews = []
     has_submitted_review = False
-    if request.user.is_reviewer():
-        user_review = Review.objects.filter(article=article, reviewer=request.user).first()
-        if user_review and user_review.comments_to_author:
-            has_submitted_review = True
-    
+    if is_authenticated:
+        if is_author_viewing:
+            # Author only sees editor-approved reviews (anonymized)
+            reviews = article.reviews.filter(editor_approved=True).select_related('reviewer')
+            anonymous_reviews = []
+            for review in reviews:
+                anonymous_reviews.append({
+                    'originality_score': review.originality_score,
+                    'significance_score': review.significance_score,
+                    'methodology_score': review.methodology_score,
+                    'clarity_score': review.clarity_score,
+                    'comments_to_author': review.comments_to_author,
+                    'recommendation': review.recommendation,
+                    'submitted_date': review.submitted_date,
+                    'is_anonymous': True,
+                })
+            reviews = anonymous_reviews
+        elif user.is_editor():
+            # Editor sees all reviews (including pending approval)
+            reviews = article.reviews.select_related('reviewer').all()
+        else:
+            # Reviewer sees only their own submitted reviews
+            reviews = article.reviews.filter(reviewer=user).select_related('reviewer')
+
+        # Check if the current user (reviewer) has already submitted a review
+        if user.is_reviewer():
+            user_review = Review.objects.filter(article=article, reviewer=user).first()
+            if user_review and user_review.comments_to_author:
+                has_submitted_review = True
+
     # Co-author visibility: editors and the article author can see them, reviewers cannot
-    can_see_coauthors = is_author_viewing or request.user.is_editor()
+    can_see_coauthors = is_author_viewing or (is_authenticated and user.is_editor())
     co_authors = article.co_authors.all() if can_see_coauthors else []
-    
+
     context = {
         'article': article,
         'reviews': reviews,
@@ -113,7 +121,8 @@ def article_detail(request, pk):
         'can_see_coauthors': can_see_coauthors,
         'access_level': access_level,
         'is_author_viewing': is_author_viewing,
-        'can_review': request.user.is_reviewer() and article.status == 'under_review' and not has_submitted_review,
+        'is_public_view': article.status == 'published' and not is_authenticated,
+        'can_review': is_authenticated and user.is_reviewer() and article.status == 'under_review' and not has_submitted_review,
     }
     return render(request, 'articles/article_detail.html', context)
 
@@ -852,6 +861,11 @@ def journal_cover_preview(request):
     return render(request, 'articles/journal_cover.html', {
         'cover_png': _pdf_preview_png(generate_cover_pdf()),
     })
+
+
+def journal_about(request):
+    """Public 'About the Journal' page with scope and submission information."""
+    return render(request, 'articles/journal_about.html')
 
 
 @login_required

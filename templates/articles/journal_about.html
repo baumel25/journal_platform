@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">About the Journal</h1>
+                <p class="mb-0">INSTRUCTOR: Journal of Computer Science and Applications (JCSA)</p>
+            </div>
+            <a href="javascript:history.back()" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i>Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <!-- About -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-book me-2"></i>About the Journal</h5>
+                    <p>
+                        <strong>INSTRUCTOR: Journal of Computer Science and Applications (JCSA)</strong> is a single-blinded
+                        peer reviewed international scientific journal housed and published by the
+                        <strong>Higher Teacher Training College (HTTC)</strong> of The University of Bamenda, Cameroon.
+                    </p>
+                    <p>
+                        INSTRUCTOR: JCSA publishes <strong>once per annum</strong>. To propose a special thematic issue,
+                        please contact the Managing Editor, Director of the Higher Teacher Training College (HTTC).
+                        Scholars interested in serving as reviewers are encouraged to contact the Managing Editor.
+                    </p>
+                    <p>Papers should be submitted via: <strong>instructorhttcjcsa@gmail.com</strong></p>
+                </div>
+            </div>
+
+            <!-- Scope -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-bullseye me-2"></i>Scope</h5>
+                    <p>
+                        JCSA aims at unveiling innovative and uncommon trends in Computer Science and its applications
+                        through publishing research papers, reviews, and short communications from areas that include:
+                    </p>
+                    <ul>
+                        <li>Computer Pedagogy</li>
+                        <li>Theoretical Computer Science</li>
+                        <li>Data Science and Big Data, Data Mining</li>
+                        <li>Spatial Data Analysis</li>
+                        <li>Software Engineering</li>
+                        <li>Compilation and Language Translation</li>
+                        <li>Image and Signal Processing</li>
+                        <li>Artificial Intelligence</li>
+                        <li>Information Security</li>
+                        <li>Networking</li>
+                        <li>Information and Communication Technology (ICT) in human and social sciences</li>
+                    </ul>
+                    <p>
+                        Only manuscripts within the scope of the journal are given full review. Manuscripts are written
+                        for a broad, diverse, international audience of either researchers and/or practitioners.
+                        Articles should be <strong>12,000 words or less</strong> including references.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Submission -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-send me-2"></i>Submission Information</h5>
+                    <p>
+                        Submissions should not exceed <strong>12,000 words</strong>. Accepted manuscripts will be available
+                        in print. All submissions will be liable to a non-refundable fee of
+                        <strong>20,000 FCFA (35 USD)</strong> and should be paid via <strong>MoMo</strong> to
+                        <strong>(237) 676102438 / 699421877</strong>.
+                    </p>
+                    <h6 class="fw-bold mt-3">Important Dates</h6>
+                    <ul>
+                        <li><strong>25 October 2025:</strong> Submission of Abstracts</li>
+                        <li><strong>27 October 2025:</strong> Reviews and Reverts</li>
+                        <li><strong>25 December 2025:</strong> Full paper submission</li>
+                        <li><strong>20 February 2026:</strong> Notification to authors</li>
+                        <li><strong>28 February 2026:</strong> Publication of Instructor JCSA, Vol. 1; No 2</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Editorial Board -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-people me-2"></i>Editors and Editorial Board</h5>
+                    <p>
+                        Our International Editorial Board includes scholars with well-recognized reputations in pedagogy,
+                        computer science, ICT, life, physical and social sciences.
+                    </p>
+                    <h6 class="fw-bold">Managing Editor</h6>
+                    <ul>
+                        <li>The Director of HTTC Bambili, Mark Bolak Funteh (Professor), Cameroon</li>
+                    </ul>
+                    <h6 class="fw-bold">Editor-in-Chief</h6>
+                    <ul>
+                        <li>Tayou Djamegni Clémentin (Professor), University of Dschang, Cameroon</li>
+                    </ul>
+                    <h6 class="fw-bold">Associate Editors</h6>
+                    <ul>
+                        <li>Kolyang (Professor), University of Maroua, Cameroon</li>
+                        <li>Fouotsa Emmanuel (Professor), The University of Bamenda, Cameroon</li>
+                        <li>Onabid Mathias (Associate Professor), The University of Bamenda, Cameroon</li>
+                    </ul>
+                    <p class="mb-0">
+                        <a href="{% url 'editorial_board' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+                            <i class="bi bi-people me-1"></i>View / Download Full Editorial Board
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Authors' Guidelines summary -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-journal-text me-2"></i>Authors' Guidelines (Summary)</h5>
+                    <ul>
+                        <li>Manuscripts must be written in <strong>English or French</strong> on A4 paper (21 cm x 29.7 cm), margins 2 cm all round. Microsoft Word format only.</li>
+                        <li>Font: Times New Roman, 12 pt for body/subheadings, 16 pt for the main title, line spacing 1.5.</li>
+                        <li>The first page should bear the complete title, full name(s) of the author(s), affiliation(s), email, contact/WhatsApp number of the corresponding author, abstract (&le; 250 words) and keywords (&le; 6).</li>
+                        <li>All titles and subtitles numbered sequentially (1, 1.1, 2, 2.1...) and left-aligned; body justified.</li>
+                        <li>Citations and references following the <strong>APA</strong> referencing style.</li>
+                        <li>Research articles should follow the order: Introduction/Background, Methodology, Results and Discussion, Conclusion, Acknowledgements, Author contributions, Conflict(s) of Interest, and References.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

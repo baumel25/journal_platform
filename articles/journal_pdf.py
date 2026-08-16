@@ -55,15 +55,66 @@ LOGO_PATH = os.path.join(settings.BASE_DIR, "static", "defaults", "logo.png")
 LOGO_WIDTH = 80  # points (scaled to fit the title block)
 
 # ---------------------------------------------------------------------------
-# Editorial board — edit these names to match the real board
+# Editorial board — real board of INSTRUCTOR: JCSA
 # ---------------------------------------------------------------------------
 EDITORIAL_BOARD = {
-    "Editor-in-Chief": ["Prof. [Name]"],
-    "Associate Editors": ["[Name 1]", "[Name 2]", "[Name 3]"],
-    "Editorial Board Members": [
-        "[Name 1]", "[Name 2]", "[Name 3]", "[Name 4]", "[Name 5]", "[Name 6]",
+    "Managing Editor": [
+        "The Director of HTTC Bambili, Mark Bolak Funteh (Professor), Cameroon",
     ],
-    "Advisory Board": ["[Name 1]", "[Name 2]", "[Name 3]"],
+    "Editor-in-Chief": [
+        "Tayou Djamegni Cl\u00e9mentin (Professor), University of Dschang, Cameroon",
+    ],
+    "Associate Editors": [
+        "Kolyang (Professor), University of Maroua, Cameroon",
+        "Fouotsa Emmanuel (Professor), The University of Bamenda, Cameroon",
+        "Onabid Mathias (Associate Professor), The University of Bamenda, Cameroon",
+    ],
+    "Manuscript and Web Editors": [
+        "Fidessou Sylvestre (Associate Professor), The University of Bamenda, Cameroon",
+        "Mbah Glory Enjong (Lecturer), The University of Bamenda, Cameroon",
+        "Awang Ollong Kingsly (Associate Professor), The University of Bamenda, Cameroon",
+    ],
+    "Editorial Assistants": [
+        "Yemelong Temgoua Nadine (Associate Professor), The University of Bamenda, Cameroon",
+        "Ndukum Pascaline (Associate Professor), The University of Bamenda, Cameroon",
+        "Konan Rodrigue (Lecturer), The University of Bamenda, Cameroon",
+    ],
+    "Editorial Board": [
+        "Akume Daniel (Professor), University of Buea, Cameroon",
+        "Fouda Djodo Martial (Professor), University of Yaound\u00e9 I, Cameroon",
+        "Atsa Roger Etoundi (Professor), University of Yaound\u00e9 I, Cameroon",
+        "Shu Williams (Professor), University of Buea, Cameroon",
+        "Mbihi Jean (Professor), University of Douala, Cameroon",
+        "Mengue Alex (Associate Professor), University of Buea, Cameroon",
+        "Kaladzavi Guidedi (Associate Professor), University of Maroua, Cameroon",
+        "Kah Elvis (Associate Professor), University of Ngaound\u00e9r\u00e9, Cameroon",
+        "Nkweteyim Denis (Associate Professor), University of Buea, Cameroon",
+        "Abdoul Aziz Ciss (Associate Professor), Ecole polytechnique de Thies, Senegal",
+        "Shu Felix (Associate Professor), The University of Bamenda, Cameroon",
+        "Tchakounte Franklin (Associate Professor), University of Ngaound\u00e9r\u00e9, Cameroon",
+        "Liennou Jean Pierre (Associate Professor), The University of Bamenda, Cameroon",
+        "Kengne Vianney (Associate Professor), University of Dschang, Cameroon",
+        "Tchoupe Maurice (Associate Professor), University of Dschang, Cameroon",
+        "Ndoundam Rene (Associate Professor), University of Yaound\u00e9 I, Cameroon",
+        "Nkenlifack Marcelin (Associate Professor), University of Dschang, Cameroon",
+        "Kalachi Herve Tale (Lecturer), University of Yaound\u00e9 I, Cameroon",
+        "Ekodeck Stephane Gael Raymond (Lecturer), University of Yaound\u00e9 I, Cameroon",
+        "Foko Miguel (Lecturer), University of Dschang, Cameroon",
+        "Kum Cletus Kwa (Lecturer), The University of Bamenda, Cameroon",
+        "Shu Charles Forbacha (Lecturer), The University of Bamenda, Cameroon",
+        "Zekeng Maxime (Lecturer), University of Dschang, Cameroon",
+        "Tagne Fute Elie (Associate Professor), University of Buea, Cameroon",
+        "Tchahou Tchendjeu Achille (Lecturer), The University of Bamenda, Cameroon",
+        "Fouotsa Boris Tako (Researcher), Swiss Federal Institute of Technology (EPFL), Switzerland",
+        "Beyou Dieudonne (Lecturer), The University of Bamenda, Cameroon",
+        "Ndiaye Ousmane (Researcher), Universit\u00e9 Cheick Anta Diaop de Dakar, Senegal",
+        "Seck Michel (Researcher), Ecole polytechnique de Thies, Senegal",
+        "Boudjou Tchapnouo Hortense (Lecturer), University of Maroua, Cameroon",
+        "Mvogo Joseph (Lecturer), University of Douala, Cameroon",
+        "Noumsi Woguia Auguste Vigny (Lecturer), University of Douala, Cameroon",
+        "Ngouanet Chr\u00e9tien (Senior Researcher), National Institute of Cartography, Cameroon",
+        "Oumarou Mamadou Bello (Lecturer), University of Maroua, Cameroon",
+    ],
 }
 
 # ---------------------------------------------------------------------------
