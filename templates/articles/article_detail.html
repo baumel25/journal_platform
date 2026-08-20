@@ -1,5 +1,7 @@
 ﻿{% extends 'base.html' %}
 
+{% block title %}{{ article.title }} | Instructor: Journal of Computer Science and Applications{% endblock %}
+
 {% block extra_head %}
     <meta name="description" content="{{ article.abstract|truncatechars:160 }}">
     {% if article.keywords %}<meta name="keywords" content="{{ article.keywords }}">{% endif %}

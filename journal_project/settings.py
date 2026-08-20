@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'articles',
     'accounts',
+    'django.contrib.sitemaps',
     'django_otp',
     'django_otp.plugins.otp_totp',
 ]
