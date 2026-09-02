@@ -32,6 +32,11 @@
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'journal_hub' %}">
+                            <i class="bi bi-journal-bookmark me-1"></i>Journal
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'journal_about' %}">
                             <i class="bi bi-book me-1"></i>About
                         </a>
@@ -162,6 +167,9 @@
                     <h6 class="fw-bold mb-3">Quick Links</h6>
                     <ul class="list-unstyled">
                         <li class="mb-2"><a href="/" class="footer-link">Home</a></li>
+                        <li class="mb-2"><a href="{% url 'journal_hub' %}" class="footer-link">Journal Home</a></li>
+                        <li class="mb-2"><a href="{% url 'journal_about' %}" class="footer-link">About the Journal</a></li>
+                        <li class="mb-2"><a href="{% url 'published_articles' %}" class="footer-link">Published Articles</a></li>
                         {% if user.is_authenticated %}
                             <li class="mb-2"><a href="{% url 'dashboard' %}" class="footer-link">Dashboard</a></li>
                             <li class="mb-2"><a href="{% url 'profile' %}" class="footer-link">My Profile</a></li>

@@ -221,6 +221,65 @@ a { text-decoration: none; }
     font-weight: 600;
 }
 
+/* Journal hub sidebar menus */
+.card-header-custom {
+    padding: 0.9rem 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
+    border-bottom: 3px solid var(--primary);
+    background: rgba(45, 45, 94, 0.04);
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+}
+
+.side-menu-list li {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.side-menu-list li:last-child {
+    border-bottom: none;
+}
+
+.side-menu-list li a {
+    display: flex;
+    align-items: center;
+    padding: 0.7rem 1.25rem;
+    color: #444;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.side-menu-list li a:hover {
+    background: var(--primary);
+    color: #fff;
+    padding-left: 1.5rem;
+}
+
+.side-menu-list li a:hover i {
+    color: #fff;
+}
+
+.side-menu-list li a i {
+    color: var(--primary-light);
+    min-width: 1.25rem;
+}
+
+.journal-seal {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+}
+
 /* ============================================
    Page Header
    ============================================ */

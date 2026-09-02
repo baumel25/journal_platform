@@ -19,6 +19,11 @@ urlpatterns = [
     path('journal/editorial-board/download/', views.download_editorial_board, name='download_editorial_board'),
     # Public listing of published articles
     path('published/', views.published_articles, name='published_articles'),
+    # Journal hub (3-column layout) + journal info pages
+    path('journal/', views.journal_hub, name='journal_hub'),
+    path('journal/author-guidelines/', views.author_guidelines, name='author_guidelines'),
+    path('journal/reviewer-guidelines/', views.reviewer_guidelines, name='reviewer_guidelines'),
+    path('journal/publication-fees/', views.publication_fees, name='publication_fees'),
     # Author URLs
     path('create/', views.create_article, name='create_article'),
     path('<int:pk>/', views.article_detail, name='article_detail'),

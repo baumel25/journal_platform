@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Publication Fees — Instructor: Journal of Computer Science and Applications{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1"><i class="bi bi-cash-coin me-2"></i>Publication Fees</h1>
+                <p class="mb-0">Fees for submitting to and reading INSTRUCTOR: JCSA</p>
+            </div>
+            <a href="{% url 'journal_hub' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i>Journal Home
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <!-- Submission fee -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-send me-2"></i>Submission Fee</h5>
+                    <p>
+                        All submissions are liable to a <strong>non-refundable fee</strong> of
+                        <strong>20,000 FCFA (35 USD)</strong>.
+                    </p>
+                    <p>
+                        Payment is made via <strong>MTN Mobile Money (MoMo)</strong> to:
+                    </p>
+                    <ul>
+                        <li><i class="bi bi-phone me-2"></i><strong>(237) 676102438</strong></li>
+                        <li><i class="bi bi-phone me-2"></i><strong>(237) 699421877</strong></li>
+                    </ul>
+                    <p class="small text-muted mb-0">
+                        Please include your manuscript number or name as the payment reference so the editorial
+                        office can match your payment.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Read access -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-unlock me-2"></i>Reading Published Articles</h5>
+                    <p>
+                        Published articles are freely available as a preview (title and abstract). Full article content
+                        and its PDF can be unlocked with a one-time payment of <strong>2,000 FCFA per article</strong>,
+                        paid securely online via MTN MoMo through the journal platform.
+                    </p>
+                    <a href="{% url 'published_articles' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                        <i class="bi bi-journal-text me-1"></i>Browse Articles
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-modern">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-question-circle me-2"></i>Questions about fees?</h5>
+                    <p class="mb-2">
+                        Contact the editorial office for any questions about fees or payment.
+                    </p>
+                    <a href="mailto:instructorhttcjcsa@gmail.com" class="btn btn-primary btn-sm rounded-pill px-4">
+                        <i class="bi bi-envelope me-1"></i>instructorhttcjcsa@gmail.com
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

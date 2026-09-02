@@ -145,6 +145,12 @@ def article_detail(request, pk):
     can_see_coauthors = is_author_viewing or (is_authenticated and user.is_editor())
     co_authors = article.co_authors.all() if can_see_coauthors else []
 
+    # Count a "view" for journal statistics — skip the author/editor so internal
+    # management does not inflate the public numbers.
+    if not (is_authenticated and (user == article.author or user.is_editor())):
+        article.view_count = (article.view_count or 0) + 1
+        article.save(update_fields=['view_count'])
+
     context = {
         'article': article,
         'reviews': reviews,
@@ -792,6 +798,11 @@ def download_article_pdf(request, pk):
         messages.error(request, 'You do not have permission to download this article.')
         return redirect('dashboard')
 
+    # Track downloads for journal statistics (skip the author/editor).
+    if not (user.is_authenticated and (user == article.author or user.is_editor())):
+        article.download_count = (article.download_count or 0) + 1
+        article.save(update_fields=['download_count'])
+
     # Published articles are produced in the standard journal layout.
     if article.status == 'published':
         pdf_bytes = generate_journal_pdf(article)
@@ -1016,6 +1027,11 @@ def download_article_file(request, pk):
         messages.error(request, 'You do not have permission to download this document.')
         return redirect('article_detail', pk=article.pk)
 
+    # Track downloads for journal statistics (skip the author/editor).
+    if user != article.author and not user.is_editor():
+        article.download_count = (article.download_count or 0) + 1
+        article.save(update_fields=['download_count'])
+
     filename = article.file.name.split('/')[-1]
     response = FileResponse(article.file.open('rb'), as_attachment=True, filename=filename)
     return response
@@ -1175,3 +1191,59 @@ def download_editorial_board(request):
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="journal-editorial-board.pdf"'
     return response
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Journal hub (SCIRP-style 3-column layout) + journal info pages
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _journal_stats(published_qs):
+    """Compute the small set of journal-level statistics shown on the hub page."""
+    from django.db.models import Sum
+    agg = published_qs.aggregate(
+        total_views=Sum('view_count'),
+        total_downloads=Sum('download_count'),
+    )
+    dates = [a.published_date for a in published_qs if a.published_date]
+    years_range = None
+    if dates:
+        years = sorted(d.year for d in dates)
+        years_range = str(years[0]) if years[0] == years[-1] else f'{years[0]}-{years[-1]}'
+    return {
+        'years': years_range,
+        'articles': published_qs.count(),
+        'authors': published_qs.values('author_id').distinct().count(),
+        'views': agg['total_views'] or 0,
+        'downloads': agg['total_downloads'] or 0,
+    }
+
+
+def journal_hub(request):
+    """Public journal landing page in a classic 3-column academic layout.
+
+    Left: journal menu + guidelines | Centre: journal identity + latest
+    articles | Right: journal statistics.
+    """
+    published = Article.objects.filter(status='published').order_by('-published_date')
+    latest = published[:6]
+    total = published.count()
+    return render(request, 'articles/journal_hub.html', {
+        'articles': latest,
+        'stats': _journal_stats(published),
+        'total_count': total,
+    })
+
+
+def author_guidelines(request):
+    """Public author guidelines page."""
+    return render(request, 'articles/journal_author_guidelines.html')
+
+
+def reviewer_guidelines(request):
+    """Public reviewer guidelines page."""
+    return render(request, 'articles/journal_reviewer_guidelines.html')
+
+
+def publication_fees(request):
+    """Public publication / submission fees page."""
+    return render(request, 'articles/journal_publication_fees.html')

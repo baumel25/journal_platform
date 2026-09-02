@@ -21,6 +21,8 @@ class Article(models.Model):
     is_anonymous = models.BooleanField(default=False, help_text='Hide the author name from reviewers')
     manuscript_number = models.CharField(max_length=30, unique=True, blank=True, null=True, help_text='Auto-generated manuscript identifier (format: I-JCSA-YYYY-XXX)')
     price = models.DecimalField(max_digits=10, decimal_places=0, default=2000, help_text='Price in FCFA to unlock the full published article')
+    view_count = models.PositiveIntegerField(default=0, help_text='Number of times the article page has been viewed')
+    download_count = models.PositiveIntegerField(default=0, help_text='Number of times the article has been downloaded')
 
     @property
     def price_in_usd(self):

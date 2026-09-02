@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Reviewer Guidelines — Instructor: Journal of Computer Science and Applications{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1"><i class="bi bi-eye me-2"></i>Reviewer Guidelines</h1>
+                <p class="mb-0">Reviewing standards for INSTRUCTOR: Journal of Computer Science and Applications</p>
+            </div>
+            <a href="{% url 'journal_hub' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i>Journal Home
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="card-modern mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-shield-check me-2"></i>Peer Review Model</h5>
+                    <p>
+                        INSTRUCTOR: JCSA is a <strong>single-blind</strong> peer reviewed journal: reviewers know the identity
+                        of the authors, but authors do not see which reviewers evaluated their manuscript. Reviews are
+                        anonymised before they are shared with the author.
+                    </p>
+                    <p>
+                        Scholars interested in serving as reviewers are encouraged to contact the Managing Editor,
+                        Director of the Higher Teacher Training College (HTTC).
+                    </p>
+                </div>
+            </div>
+
+            <div class="card-modern mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-check2-square me-2"></i>What Reviewers Evaluate</h5>
+                    <ul>
+                        <li><strong>Originality</strong> — novelty and contribution of the work.</li>
+                        <li><strong>Significance</strong> — importance to the field and to the journal's readership.</li>
+                        <li><strong>Methodology</strong> — soundness and reproducibility of the methods used.</li>
+                        <li><strong>Clarity</strong> — quality of writing, organisation and presentation.</li>
+                        <li><strong>Recommendation</strong> — an overall recommendation on the manuscript.</li>
+                    </ul>
+                    <p>
+                        Reviews are completed through the online platform (score criteria + comments to the author).
+                        Constructive, specific and respectful feedback is expected.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card-modern mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-shield-lock me-2"></i>Confidentiality &amp; Ethics</h5>
+                    <ul>
+                        <li>Manuscripts under review are <strong>confidential</strong> — do not share or discuss them.</li>
+                        <li>Declare any conflict of interest before accepting an invitation.</li>
+                        <li>Do not use ideas or data from a manuscript under review for your own work.</li>
+                        <li>Notify the editorial office if you cannot meet the review deadline.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card-modern mb-4">
+                <div class="card-body p-4 d-flex flex-wrap gap-2 align-items-center">
+                    <span class="fw-bold me-auto">Want to review for the journal?</span>
+                    <a href="mailto:instructorhttcjcsa@gmail.com" class="btn btn-outline-primary btn-sm rounded-pill px-4">
+                        <i class="bi bi-envelope me-1"></i>Contact the Editorial Office
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
