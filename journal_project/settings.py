@@ -194,3 +194,17 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+# ─── MTN MoMo payment gateway (paid access to full published articles) ───
+# See https://momodeveloper.mtn.com for sandbox/live credentials.
+# If the credentials are empty the site falls back to manual payment
+# confirmation (admins mark purchases as paid from the Django admin).
+MOMO_API_USER = os.environ.get('MOMO_API_USER', '')
+MOMO_API_KEY = os.environ.get('MOMO_API_KEY', '')
+MOMO_SUBSCRIPTION_KEY = os.environ.get('MOMO_SUBSCRIPTION_KEY', '')
+MOMO_BASE_URL = os.environ.get('MOMO_BASE_URL', 'https://sandbox.momodeveloper.mtn.com')
+MOMO_TARGET_ENVIRONMENT = os.environ.get('MOMO_TARGET_ENVIRONMENT', 'sandbox')
+MOMO_CALLBACK_URL = os.environ.get(
+    'MOMO_CALLBACK_URL',
+    f"{BASE_URL.rstrip('/')}/articles/payment/callback/",
+)

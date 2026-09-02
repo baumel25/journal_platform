@@ -1,4 +1,7 @@
-﻿from django.shortcuts import render, redirect, get_object_or_404
+﻿import json
+import logging
+
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.conf import settings
@@ -6,9 +9,12 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.db.models import Count
 from django.contrib.auth import get_user_model
-from .models import Article, Review, ReviewInvitation, CoAuthor
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from .models import Article, Review, ReviewInvitation, CoAuthor, ArticlePurchase
 from .forms import ArticleForm, ReviewForm, CoAuthorFormSet
 from .utils import notify_editors_new_submission, notify_author_decision, notify_reviewer_invitation, notify_editor_invitation_response
+from .momo import MomoClient, MomoError, MomoNotConfigured, is_gateway_configured
 from .journal_pdf import (
     generate_journal_pdf,
     generate_cover_pdf,
@@ -17,6 +23,8 @@ from .journal_pdf import (
 )
 
 User = get_user_model()
+
+logger = logging.getLogger(__name__)
 
 # Existing views
 @login_required
@@ -50,18 +58,40 @@ def article_detail(request, pk):
     is_authenticated = user.is_authenticated
     is_author_viewing = is_authenticated and (user == article.author)
 
-    # Published articles are public (view-only) so search engines and any
-    # visitor can read them. Non-published articles require login + permission.
+    # Published articles are public (preview) so search engines and any visitor
+    # can read the title + abstract. The full article is unlocked for the
+    # author/editor/reviewer (full access) or after the reader has paid.
+    # Non-published articles require login + permission.
     can_view = False
+    can_view_full = False
     access_level = 'full'
+    has_paid = False
     if article.status == 'published':
         can_view = True
+        can_view_full = is_author_viewing or (is_authenticated and user.is_editor())
+        if is_authenticated and user.is_reviewer():
+            invitation = ReviewInvitation.objects.filter(
+                article=article,
+                reviewer=user,
+                status='accepted',
+            ).first()
+            if invitation and invitation.access_level == 'full':
+                can_view_full = True
+            elif invitation:
+                access_level = invitation.access_level
+        if is_authenticated and not can_view_full:
+            has_paid = ArticlePurchase.objects.filter(
+                article=article, user=user, status='paid',
+            ).exists()
+            can_view_full = has_paid
     elif not is_authenticated:
         return redirect(f'{settings.LOGIN_URL}?next={request.path}')
     elif is_author_viewing:
         can_view = True
+        can_view_full = True
     elif user.is_editor():
         can_view = True
+        can_view_full = True
     elif user.is_reviewer():
         # Reviewer can only view if they have accepted an invitation for this article
         invitation = ReviewInvitation.objects.filter(
@@ -71,6 +101,7 @@ def article_detail(request, pk):
         ).first()
         if invitation:
             can_view = True
+            can_view_full = invitation.access_level == 'full'
             access_level = invitation.access_level
 
     if not can_view:
@@ -121,7 +152,10 @@ def article_detail(request, pk):
         'can_see_coauthors': can_see_coauthors,
         'access_level': access_level,
         'is_author_viewing': is_author_viewing,
+        'can_view_full': can_view_full,
+        'has_paid': has_paid,
         'is_public_view': article.status == 'published' and not is_authenticated,
+        'is_preview': article.status == 'published' and not can_view_full,
         'can_review': is_authenticated and user.is_reviewer() and article.status == 'under_review' and not has_submitted_review,
     }
     return render(request, 'articles/article_detail.html', context)
@@ -492,7 +526,7 @@ def editor_article_edit(request, pk):
     article = get_object_or_404(Article, pk=pk)
     
     if request.method == 'POST':
-        form = ArticleForm(request.POST, instance=article)
+        form = ArticleForm(request.POST, request.FILES, instance=article)
         if form.is_valid():
             form.save()
             messages.success(request, 'Article updated successfully!')
@@ -728,24 +762,31 @@ def download_article_pdf(request, pk):
     from django.utils.text import slugify
 
     article = get_object_or_404(Article, pk=pk)
+    user = request.user
 
     # Check permissions
     can_view = False
-    if request.user == article.author:
-        can_view = True
-    elif request.user.is_editor():
-        can_view = True
-    elif request.user.is_reviewer():
-        invitation = ReviewInvitation.objects.filter(
-            article=article,
-            reviewer=request.user,
-            status='accepted',
-        ).first()
-        if invitation:
-            if invitation.access_level == 'abstract_only':
-                messages.error(request, 'You only have abstract-only access. Full document download is not available.')
-                return redirect('article_detail', pk=article.pk)
+    if user.is_authenticated:
+        if user == article.author:
             can_view = True
+        elif user.is_editor():
+            can_view = True
+        elif user.is_reviewer():
+            invitation = ReviewInvitation.objects.filter(
+                article=article,
+                reviewer=user,
+                status='accepted',
+            ).first()
+            if invitation:
+                if invitation.access_level == 'abstract_only':
+                    messages.error(request, 'You only have abstract-only access. Full document download is not available.')
+                    return redirect('article_detail', pk=article.pk)
+                can_view = True
+        # Paid readers can download the published journal PDF.
+        if not can_view and article.status == 'published':
+            can_view = ArticlePurchase.objects.filter(
+                article=article, user=user, status='paid',
+            ).exists()
 
     if not can_view:
         messages.error(request, 'You do not have permission to download this article.')
@@ -761,6 +802,223 @@ def download_article_pdf(request, pk):
 
     # Non-published articles: simple working version (journal format on publish only).
     return download_article_pdf_simple(request, pk)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Paid access to full published articles (MTN MoMo)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _validate_momo_number(phone):
+    """Return True if the phone looks like a Cameroonian MoMo number (6XXXXXXXX)."""
+    import re
+    return bool(re.fullmatch(r'6\d{8}', str(phone).strip()))
+
+
+@login_required
+def pay_article(request, pk):
+    """Payment page to unlock a full published article."""
+    article = get_object_or_404(Article, pk=pk)
+    if article.status != 'published':
+        messages.error(request, 'Only published articles can be purchased.')
+        return redirect('article_detail', pk=article.pk)
+
+    already = ArticlePurchase.objects.filter(
+        article=article, user=request.user, status='paid',
+    ).exists()
+    if already:
+        messages.info(request, 'You already have full access to this article.')
+        return redirect('article_detail', pk=article.pk)
+
+    gateway_configured = is_gateway_configured()
+    context = {
+        'article': article,
+        'gateway_configured': gateway_configured,
+        'phone': request.POST.get('phone_number', ''),
+    }
+
+    if request.method == 'POST':
+        phone = request.POST.get('phone_number', '').strip()
+        if not _validate_momo_number(phone):
+            messages.error(request, 'Please enter a valid MoMo number (format: 6XXXXXXXX).')
+            context['phone'] = phone
+            return render(request, 'articles/pay_article.html', context)
+
+        purchase, _ = ArticlePurchase.objects.get_or_create(
+            article=article,
+            user=request.user,
+            status='pending',
+            defaults={'amount': article.price, 'phone_number': phone},
+        )
+        if not purchase.reference:
+            purchase.reference = purchase.generate_reference()
+        purchase.amount = article.price
+        purchase.phone_number = phone
+        purchase.status = 'pending'
+        purchase.save()
+
+        if gateway_configured:
+            try:
+                client = MomoClient()
+                reference_id, _ = client.request_to_pay(
+                    amount=article.price,
+                    phone_number=phone,
+                    external_id=purchase.reference,
+                    payer_message=f'INSTRUCTOR JCSA - {article.title[:40]}',
+                    payee_note='Full article access',
+                )
+                purchase.momo_transaction_id = reference_id
+                purchase.save(update_fields=['momo_transaction_id'])
+            except MomoError as exc:
+                logger.error('MoMo request_to_pay failed for %s: %s', purchase.reference, exc)
+                messages.error(
+                    request,
+                    'We could not start the mobile money request. Please try again '
+                    'in a moment or contact the editorial office.'
+                )
+                return render(request, 'articles/pay_article.html', context)
+        else:
+            messages.info(
+                request,
+                'A payment request has been created. Complete your payment and the '
+                'editorial office will confirm it shortly.'
+            )
+
+        return redirect('payment_status', pk=article.pk)
+
+    return render(request, 'articles/pay_article.html', context)
+
+
+@login_required
+def payment_status(request, pk):
+    """Show the status of the user's latest purchase attempt for an article."""
+    article = get_object_or_404(Article, pk=pk)
+    purchase = ArticlePurchase.objects.filter(
+        article=article, user=request.user,
+    ).order_by('-created_at').first()
+
+    if not purchase:
+        messages.info(request, 'No payment found for this article.')
+        return redirect('pay_article', pk=article.pk)
+
+    # If still pending and we have a MoMo transaction id, check the gateway so
+    # the page reflects the true state even without the callback.
+    if (purchase.status == 'pending' and purchase.momo_transaction_id
+            and is_gateway_configured()):
+        try:
+            data = MomoClient().get_transaction_status(purchase.momo_transaction_id)
+            momo_status = (data.get('status') or '').upper()
+            if momo_status == 'SUCCESSFUL':
+                purchase.mark_paid(data.get('financialTransactionId', ''))
+            elif momo_status == 'FAILED':
+                purchase.status = 'failed'
+                purchase.save(update_fields=['status'])
+        except MomoError:
+            pass  # keep pending; the callback may still confirm it
+
+    if not purchase.reference:
+        purchase.reference = purchase.generate_reference()
+        purchase.save(update_fields=['reference'])
+
+    context = {
+        'article': article,
+        'purchase': purchase,
+        'gateway_configured': is_gateway_configured(),
+    }
+    return render(request, 'articles/payment_status.html', context)
+
+
+@csrf_exempt
+@require_POST
+def payment_callback(request):
+    """Webhook called by MTN MoMo when a request-to-pay completes.
+
+    The callback payload carries our internal reference in ``externalId`` and
+    the transaction ``status`` (SUCCESSFUL/FAILED). We mark the matching
+    purchase as paid so the reader gets full access.
+    """
+    try:
+        data = json.loads(request.body or b'{}')
+    except (ValueError, TypeError):
+        data = {}
+
+    status = (data.get('status') or '').upper()
+    external_id = data.get('externalId') or ''
+    reference_id = request.headers.get('X-Reference-Id') or ''
+
+    purchase = None
+    if external_id:
+        purchase = ArticlePurchase.objects.filter(reference=external_id).first()
+    if purchase is None and reference_id:
+        purchase = ArticlePurchase.objects.filter(momo_transaction_id=reference_id).first()
+
+    if purchase and status == 'SUCCESSFUL':
+        # Verify server-side with the MoMo API before granting access so a
+        # forged callback cannot unlock an article without a real payment.
+        if is_gateway_configured() and purchase.momo_transaction_id:
+            try:
+                verified = MomoClient().get_transaction_status(purchase.momo_transaction_id)
+                if (verified.get('status') or '').upper() != 'SUCCESSFUL':
+                    return HttpResponse('Verification failed', status=409)
+            except MomoError:
+                return HttpResponse('Verification unavailable', status=409)
+        purchase.mark_paid(data.get('financialTransactionId', ''))
+        return HttpResponse('OK')
+    if purchase and status == 'FAILED':
+        purchase.status = 'failed'
+        purchase.save(update_fields=['status'])
+        return HttpResponse('OK')
+
+    logger.info('MoMo callback for unknown reference (externalId=%s, status=%s)', external_id, status)
+    return HttpResponse('No matching payment', status=404)
+
+
+@login_required
+def my_purchases(request):
+    """List the articles the current user has paid to unlock."""
+    purchases = ArticlePurchase.objects.filter(
+        user=request.user, status='paid',
+    ).select_related('article').order_by('-paid_at')
+    return render(request, 'articles/my_purchases.html', {'purchases': purchases})
+
+
+@login_required
+def download_article_file(request, pk):
+    """Stream the uploaded article document, enforcing full-access permissions.
+
+    Raw uploaded files under ``article_files/`` are NOT served publicly; they
+    can only be downloaded through this view by the author, an editor, a
+    reviewer with full access, or a reader who has paid to unlock the article.
+    """
+    from django.http import FileResponse, Http404
+
+    article = get_object_or_404(Article, pk=pk)
+    user = request.user
+    if not article.file:
+        raise Http404('No document uploaded for this article.')
+
+    can_view = False
+    if user == article.author:
+        can_view = True
+    elif user.is_editor():
+        can_view = True
+    elif user.is_reviewer():
+        invitation = ReviewInvitation.objects.filter(
+            article=article, reviewer=user, status='accepted',
+        ).first()
+        if invitation and invitation.access_level == 'full':
+            can_view = True
+    if not can_view and article.status == 'published':
+        can_view = ArticlePurchase.objects.filter(
+            article=article, user=user, status='paid',
+        ).exists()
+
+    if not can_view:
+        messages.error(request, 'You do not have permission to download this document.')
+        return redirect('article_detail', pk=article.pk)
+
+    filename = article.file.name.split('/')[-1]
+    response = FileResponse(article.file.open('rb'), as_attachment=True, filename=filename)
+    return response
 # Alternative version using ReportLab
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -866,6 +1124,12 @@ def journal_cover_preview(request):
 def journal_about(request):
     """Public 'About the Journal' page with scope and submission information."""
     return render(request, 'articles/journal_about.html')
+
+
+def published_articles(request):
+    """Public listing of published articles (preview: title + abstract only)."""
+    articles = Article.objects.filter(status='published').order_by('-published_date')
+    return render(request, 'articles/published_articles.html', {'articles': articles})
 
 
 @login_required

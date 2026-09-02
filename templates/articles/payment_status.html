@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Status — {{ article.title }}{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1"><i class="bi bi-receipt me-2"></i>Payment Status</h1>
+                <p class="mb-0">{{ article.title }}</p>
+            </div>
+            <a href="{% url 'article_detail' article.pk %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i>Back to Article
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            {% if purchase.status == 'paid' %}
+            <!-- Success -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4 text-center">
+                    <div style="font-size: 4rem; color: #10b981;" class="mb-3">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <h4 class="fw-bold text-success mb-2">Payment Successful!</h4>
+                    <p class="text-muted">
+                        You now have full access to this article. Thank you for supporting
+                        INSTRUCTOR: Journal of Computer Science and Applications.
+                    </p>
+                    <div class="mx-auto mb-4" style="max-width: 420px;">
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Reference</span>
+                            <strong>{{ purchase.reference }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Amount</span>
+                            <strong>{{ purchase.amount }} FCFA</strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Paid on</span>
+                            <strong>{{ purchase.paid_at|date:"M d, Y H:i" }}</strong>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a href="{% url 'article_detail' article.pk %}" class="btn btn-primary rounded-pill px-4">
+                            <i class="bi bi-eye me-1"></i>Read Full Article
+                        </a>
+                        <a href="{% url 'download_article_pdf' article.pk %}" class="btn btn-outline-primary rounded-pill px-4">
+                            <i class="bi bi-file-pdf me-1"></i>Download PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% elif purchase.status == 'failed' %}
+            <!-- Failed -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4 text-center">
+                    <div style="font-size: 4rem; color: #ef4444;" class="mb-3">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </div>
+                    <h4 class="fw-bold text-danger mb-2">Payment Failed</h4>
+                    <p class="text-muted">Your payment could not be completed. Please try again.</p>
+                    <a href="{% url 'pay_article' article.pk %}" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-arrow-repeat me-1"></i>Try Again
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <!-- Pending -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4 text-center">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h4 class="fw-bold mb-2">Payment Pending</h4>
+                    <p class="text-muted mb-4">
+                        {% if gateway_configured %}
+                            We have sent a payment request to your MTN MoMo number
+                            <strong>{{ purchase.phone_number }}</strong>. Please approve the prompt
+                            on your phone to complete the payment.
+                        {% else %}
+                            Your payment request (reference <strong>{{ purchase.reference }}</strong>) has
+                            been recorded. Once the editorial office confirms your payment, your access
+                            will be activated.
+                        {% endif %}
+                    </p>
+                    <div class="mx-auto mb-4" style="max-width: 420px;">
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Reference</span>
+                            <strong>{{ purchase.reference }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Amount</span>
+                            <strong>{{ purchase.amount }} FCFA</strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Status</span>
+                            <strong class="text-warning">{{ purchase.get_status_display }}</strong>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a href="{% url 'payment_status' article.pk %}" class="btn btn-outline-primary rounded-pill px-4">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Check Status
+                        </a>
+                        <a href="{% url 'article_detail' article.pk %}" class="btn btn-light rounded-pill px-4">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Article
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

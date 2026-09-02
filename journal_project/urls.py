@@ -1,6 +1,6 @@
 ﻿from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
@@ -34,7 +34,19 @@ urlpatterns = [
 ]
 
 # Serve media files in all environments
-urlpatterns += [re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT})]
+def protected_media(request, path):
+    """Serve media files, but never expose raw uploaded article documents.
+
+    Files under ``article_files/`` (the uploaded manuscripts / published PDFs)
+    are only accessible through the permission-checked download views, so paid
+    access cannot be bypassed by guessing the file URL.
+    """
+    if path.startswith('article_files/'):
+        raise Http404('Article files are protected.')
+    return serve(request, path, document_root=settings.MEDIA_ROOT)
+
+
+urlpatterns += [re_path(r'^media/(?P<path>.*)$', protected_media)]
 
 # Serve static files in all environments
 urlpatterns += [re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT})]

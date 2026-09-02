@@ -3,6 +3,12 @@ from . import views
 
 urlpatterns = [
     path('download-pdf/<int:pk>/', views.download_article_pdf, name='download_article_pdf'),
+    path('<int:pk>/download-file/', views.download_article_file, name='download_article_file'),
+    # Paid access to full published articles (MTN MoMo)
+    path('<int:pk>/pay/', views.pay_article, name='pay_article'),
+    path('<int:pk>/payment/', views.payment_status, name='payment_status'),
+    path('payment/callback/', views.payment_callback, name='payment_callback'),
+    path('my-purchases/', views.my_purchases, name='my_purchases'),
     # Journal documents
     path('journal/about/', views.journal_about, name='journal_about'),
     path('journal/cover/', views.journal_cover_preview, name='journal_cover'),
@@ -11,6 +17,8 @@ urlpatterns = [
     path('journal/toc/download/', views.download_journal_toc, name='download_journal_toc'),
     path('journal/editorial-board/', views.editorial_board_preview, name='editorial_board'),
     path('journal/editorial-board/download/', views.download_editorial_board, name='download_editorial_board'),
+    # Public listing of published articles
+    path('published/', views.published_articles, name='published_articles'),
     # Author URLs
     path('create/', views.create_article, name='create_article'),
     path('<int:pk>/', views.article_detail, name='article_detail'),

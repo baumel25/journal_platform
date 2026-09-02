@@ -20,6 +20,15 @@ class Article(models.Model):
     file = models.FileField(upload_to='article_files/', blank=True, null=True, help_text='Upload your document (PDF, DOC, DOCX)')
     is_anonymous = models.BooleanField(default=False, help_text='Hide the author name from reviewers')
     manuscript_number = models.CharField(max_length=30, unique=True, blank=True, null=True, help_text='Auto-generated manuscript identifier (format: I-JCSA-YYYY-XXX)')
+    price = models.DecimalField(max_digits=10, decimal_places=0, default=2000, help_text='Price in FCFA to unlock the full published article')
+
+    @property
+    def price_in_usd(self):
+        """Approximate USD equivalent (1 USD ≈ 600 XAF)."""
+        try:
+            return round(float(self.price) / 600, 2)
+        except (TypeError, ValueError):
+            return 0
     
     # Relationships
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='articles')
@@ -197,3 +206,53 @@ class Review(models.Model):
     def is_author_visible(self):
         """Check if this review should be visible to the author."""
         return self.editor_approved is True
+
+
+class ArticlePurchase(models.Model):
+    """Tracks a one-time payment that unlocks full access to a published article."""
+
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    )
+
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='purchases')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='article_purchases')
+    amount = models.DecimalField(max_digits=10, decimal_places=0, help_text='Amount paid in FCFA')
+    phone_number = models.CharField(max_length=20, help_text='MoMo number used for the payment (format: 6XXXXXXXX)')
+    reference = models.CharField(max_length=40, unique=True, blank=True, help_text='Internal payment reference (format: PAY-YYYY-XXXX)')
+    momo_transaction_id = models.CharField(max_length=100, blank=True, help_text='MTN MoMo request-to-pay transaction reference')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Purchase {self.reference} for '{self.article.title}' by {self.user.username} ({self.get_status_display()})"
+
+    def generate_reference(self):
+        """Generate the next sequential payment reference: PAY-YYYY-XXXX."""
+        from django.db.models import Max
+        year = timezone.now().strftime('%Y')
+        prefix = f'PAY-{year}-'
+        last = ArticlePurchase.objects.filter(
+            reference__startswith=prefix
+        ).aggregate(Max('reference'))['reference__max']
+        if last:
+            last_num = int(last.split('-')[-1])
+            next_num = last_num + 1
+        else:
+            next_num = 1
+        return f"{prefix}{next_num:04d}"
+
+    def mark_paid(self, momo_transaction_id=''):
+        """Mark this purchase as paid and unlock the article for the user."""
+        self.status = 'paid'
+        self.paid_at = timezone.now()
+        if momo_transaction_id:
+            self.momo_transaction_id = momo_transaction_id
+        self.save(update_fields=['status', 'paid_at', 'momo_transaction_id'])

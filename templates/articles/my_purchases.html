@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}My Purchases{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1"><i class="bi bi-cart-check me-2"></i>My Purchases</h1>
+                <p class="mb-0">Articles you have unlocked</p>
+            </div>
+            <a href="javascript:history.back()" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i>Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            {% if purchases %}
+                {% for purchase in purchases %}
+                    <div class="card-modern mb-3">
+                        <div class="card-body p-4">
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                                <div class="flex-grow-1" style="min-width: 220px;">
+                                    <a href="{% url 'article_detail' purchase.article.pk %}" class="fw-bold text-decoration-none" style="color: var(--primary);">
+                                        {{ purchase.article.title }}
+                                    </a>
+                                    <div class="small text-muted mt-1">
+                                        <span class="status-badge status-published me-2">{{ purchase.article.get_status_display }}</span>
+                                        {% if purchase.article.manuscript_number %}
+                                            <span class="me-2"><i class="bi bi-hash me-1"></i>{{ purchase.article.manuscript_number }}</span>
+                                        {% endif %}
+                                        <span><i class="bi bi-calendar-check me-1"></i>Paid {{ purchase.paid_at|date:"M d, Y" }}</span>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        <span class="me-3"><i class="bi bi-receipt me-1"></i>Ref: {{ purchase.reference }}</span>
+                                        <span><i class="bi bi-currency-exchange me-1"></i>{{ purchase.amount }} FCFA</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'article_detail' purchase.article.pk %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                        <i class="bi bi-eye me-1"></i>Read
+                                    </a>
+                                    <a href="{% url 'download_article_pdf' purchase.article.pk %}" class="btn btn-primary btn-sm rounded-pill px-3">
+                                        <i class="bi bi-file-pdf me-1"></i>PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="card-modern">
+                    <div class="card-body p-5 text-center">
+                        <div style="font-size: 3rem; color: var(--primary); opacity: 0.4;" class="mb-3">
+                            <i class="bi bi-cart"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">No purchases yet</h5>
+                        <p class="text-muted">You haven't unlocked any articles yet.</p>
+                        <a href="{% url 'journal_toc' %}" class="btn btn-primary rounded-pill px-4">
+                            <i class="bi bi-journal me-1"></i>Browse Published Articles
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
