@@ -5,7 +5,7 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
-from accounts import views as accounts_views
+from articles import views as article_views
 from journal_project.sitemaps import ArticleSitemap, StaticSitemap
 
 sitemaps = {
@@ -28,7 +28,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('robots.txt', robots_txt, name='robots_txt'),
-    path('', accounts_views.home, name='home'),
+    # The site opens on the journal hub page (SCIRP-style journal landing).
+    path('', article_views.journal_hub, name='home'),
     path('accounts/', include('accounts.urls')),
     path('articles/', include('articles.urls')),
 ]

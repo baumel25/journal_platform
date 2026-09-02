@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Journal — Instructor: Journal of Computer Science and Applications{% endblock %}
 
@@ -77,9 +78,9 @@
             <!-- Journal identity -->
             <div class="card-modern mb-4">
                 <div class="card-body p-4">
-                    <div class="d-flex align-items-start gap-3">
-                        <div class="journal-seal d-none d-sm-flex">
-                            <i class="bi bi-journal-text"></i>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="journal-logo-wrap d-none d-sm-flex">
+                            <img src="{% static 'defaults/logo.png' %}" alt="INSTRUCTOR: Journal of Computer Science and Applications logo" class="journal-logo">
                         </div>
                         <div>
                             <h4 class="fw-bold mb-1" style="color: var(--primary);">INSTRUCTOR: Journal of Computer Science and Applications</h4>

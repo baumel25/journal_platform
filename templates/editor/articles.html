@@ -30,6 +30,7 @@
                     <a href="{% url 'publish_article' article.pk %}" class="action-btn btn-view" style="background: #16a34a;">Publish</a>
                     {% endif %}
                     <a href="{% url 'editor_article_edit' article.pk %}" class="action-btn btn-edit">Edit</a>
+                    <a href="{% url 'editor_article_delete' article.pk %}" class="action-btn btn-delete">Delete</a>
                 </td>
             </tr>
             {% endfor %}
