@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from .models import Article, Review, ReviewInvitation, CoAuthor, ArticlePurchase
 from .forms import ArticleForm, ReviewForm, CoAuthorFormSet
-from .utils import notify_editors_new_submission, notify_author_decision, notify_reviewer_invitation, notify_editor_invitation_response
+from .utils import notify_editors_new_submission, notify_author_submission, notify_author_decision, notify_reviewer_invitation, notify_editor_invitation_response
 from .momo import MomoClient, MomoError, MomoNotConfigured, is_gateway_configured
 from .journal_pdf import (
     generate_journal_pdf,
@@ -203,6 +203,7 @@ def submit_article(request, pk):
     else:
         article.submit_for_review()
         notify_editors_new_submission(article)
+        notify_author_submission(article)
         ms = article.manuscript_number or 'N/A'
         messages.success(
             request,

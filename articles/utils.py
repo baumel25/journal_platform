@@ -177,6 +177,36 @@ You can review it here:
     _send_mail_safe(subject, message, settings.DEFAULT_FROM_EMAIL, editor_emails)
 
 
+def notify_author_submission(article):
+    """Send the author a confirmation email when their article is submitted."""
+    author = article.author
+    if not author.email:
+        return
+
+    ms = article.manuscript_number or 'N/A'
+    subject = f'[Instructor: Journal of Computer Science and Applications] Submission Received: {article.title}'
+
+    message = f"""
+Dear {author.get_full_name() or author.username},
+
+Thank you for submitting your research to the INSTRUCTOR: Journal of Computer Science and Applications.
+
+Manuscript Number: {ms}
+Title: {article.title}
+Status: Submitted (under editorial review)
+
+Your manuscript has been forwarded to the editorial office for initial screening.
+Please reference the manuscript number above in all correspondence.
+
+You can track the progress of your article from your dashboard:
+{settings.BASE_URL or 'http://localhost:8000'}{reverse('article_detail', args=[article.pk])}
+
+Best regards,
+Instructor: Journal of Computer Science and Applications
+"""
+    _send_mail_safe(subject, message, settings.DEFAULT_FROM_EMAIL, [author.email])
+
+
 def notify_author_decision(article, decision):
     """Notify the author when an editor makes a decision on their article."""
     author = article.author

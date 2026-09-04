@@ -174,7 +174,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'christianyonta73@gmail.com')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'instructorhttcjcsa@gmail.com')
 # SECURITY: the Gmail app password is read ONLY from the environment. Set
 # EMAIL_HOST_PASSWORD locally and on Railway, or email sending will be skipped.
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
