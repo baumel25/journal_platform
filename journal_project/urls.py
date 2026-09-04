@@ -24,10 +24,19 @@ def robots_txt(request):
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
 
+def google_verification_file(request):
+    """Serve the Google Search Console ownership verification file."""
+    return HttpResponse(
+        "google-site-verification: google0c3c4fd399199736.html",
+        content_type="text/html",
+    )
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('robots.txt', robots_txt, name='robots_txt'),
+    path('google0c3c4fd399199736.html', google_verification_file, name='google_verification_file'),
     # The site opens on the journal hub page (SCIRP-style journal landing).
     path('', article_views.journal_hub, name='home'),
     path('accounts/', include('accounts.urls')),
