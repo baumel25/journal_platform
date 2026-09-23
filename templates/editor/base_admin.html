@@ -271,8 +271,28 @@
            ════════════════════════════════════════════════ */
         body.admin-body { background: #f1f5f9; }
 
-        /* Sidebar */
-        .admin-sidebar { box-shadow: 4px 0 24px rgba(15,23,42,.10); }
+        /* Sidebar — pinned to the viewport, scrolls, footer always reachable */
+        .admin-sidebar {
+            top: 0;
+            left: 0;
+            height: 100vh;
+            height: 100dvh;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            box-shadow: 4px 0 24px rgba(15,23,42,.10);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148,163,184,.35) transparent;
+        }
+        .admin-sidebar::-webkit-scrollbar { width: 8px; }
+        .admin-sidebar::-webkit-scrollbar-track { background: transparent; }
+        .admin-sidebar::-webkit-scrollbar-thumb { background: rgba(148,163,184,.28); border-radius: 8px; }
+        .admin-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,.5); }
+        .admin-sidebar .sidebar-footer {
+            position: sticky;
+            bottom: 0;
+            z-index: 2;
+            background: linear-gradient(180deg, rgba(26,26,62,.55) 0%, #1a1a3e 55%);
+        }
         .admin-sidebar .sidebar-brand a { display: flex; align-items: center; gap: .65rem; text-align: left; line-height: 1.25; font-size: .95rem; }
         .admin-sidebar .sidebar-brand i { font-size: 1.5rem; color: #8ea2ff; margin: 0; }
         .admin-sidebar .sidebar-user .role-chip {
