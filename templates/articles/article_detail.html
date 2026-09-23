@@ -24,10 +24,10 @@
                     {% endif %}
                     <span class="text-white-50">
                         by <strong>
-                            {% if article.is_anonymous and not is_author_viewing %}
+                            {% if article.is_anonymous and article.status != 'published' and not is_author_viewing %}
                                 Anonymous
                             {% else %}
-                                {{ article.author.username }}
+                                {{ article.author.get_full_name|default:article.author.username }}{% for co in co_authors %}, {{ co.name }}{% endfor %}
                             {% endif %}
                         </strong>
                         {% if article.is_anonymous and user.is_editor %}
@@ -86,10 +86,10 @@
                         <div>
                             <small class="text-muted d-block">Author</small>
                             <strong><i class="bi bi-person me-1"></i>
-                                {% if article.is_anonymous and not is_author_viewing %}
+                                {% if article.is_anonymous and article.status != 'published' and not is_author_viewing %}
                                     Anonymous
                                 {% else %}
-                                    {{ article.author.username }}
+                                    {{ article.author.get_full_name|default:article.author.username }}
                                 {% endif %}
                             </strong>
                         </div>

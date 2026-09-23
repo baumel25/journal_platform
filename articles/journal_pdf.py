@@ -256,10 +256,33 @@ class _NumberedCanvas(canvas.Canvas):
         self.line(ML, y + 0.35 * cm, PAGE_W - MR, y + 0.35 * cm)
 
 
+def _author_line_and_affiliations(article):
+    """Build the author line (main author + co-authors) and numbered affiliations."""
+    author = article.author
+    entries = [(
+        author.get_full_name() or author.username,
+        (author.affiliation or '').strip(),
+    )]
+    for co_author in article.co_authors.all():
+        entries.append((co_author.name, (co_author.affiliation or '').strip()))
+
+    affiliations = []
+    for _name, affiliation in entries:
+        if affiliation and affiliation not in affiliations:
+            affiliations.append(affiliation)
+
+    parts = []
+    for name, affiliation in entries:
+        superscript = ''
+        if affiliation:
+            superscript = f"<super>{affiliations.index(affiliation) + 1}</super>"
+        parts.append(f"{_esc(name)}{superscript}")
+    return ', '.join(parts), affiliations
+
+
 def _build_title_flowables(article, styles):
     """Logo, title, authors, affiliations, email, abstract and keywords block."""
     author = article.author
-    name = author.get_full_name() or author.username
     flowables = []
 
     # Journal logo (already contains the journal name), centered above the title
@@ -273,11 +296,12 @@ def _build_title_flowables(article, styles):
 
     flowables.append(Paragraph(_esc(article.title), styles["title"]))
 
-    if author.affiliation:
-        flowables.append(Paragraph(f"{_esc(name)}<super>1</super>", styles["authors"]))
-        flowables.append(Paragraph(f"<super>1</super>{_esc(author.affiliation)}", styles["affiliations"]))
-    else:
-        flowables.append(Paragraph(_esc(name), styles["authors"]))
+    author_line, affiliation_list = _author_line_and_affiliations(article)
+    flowables.append(Paragraph(author_line, styles["authors"]))
+    for index, affiliation in enumerate(affiliation_list, start=1):
+        flowables.append(
+            Paragraph(f"<super>{index}</super>{_esc(affiliation)}", styles["affiliations"])
+        )
 
     if author.email:
         flowables.append(
@@ -573,10 +597,12 @@ def generate_toc_pdf(articles):
         except Exception:
             count = 1
         end = start + count - 1
-        author = article.author.get_full_name() or article.author.username
+        author_names = [article.author.get_full_name() or article.author.username]
+        author_names.extend(co.name for co in article.co_authors.all())
+        authors = ', '.join(author_names)
         rows.append([
             str(index),
-            f"<b>{_esc(article.title)}</b><br/><font size=7.5 color=#444444>{_esc(author)}</font>",
+            f"<b>{_esc(article.title)}</b><br/><font size=7.5 color=#444444>{_esc(authors)}</font>",
             f"{start}\u2013{end}",
         ])
         start = end + 1

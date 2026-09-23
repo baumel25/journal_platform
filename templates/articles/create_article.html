@@ -51,7 +51,7 @@
                         
                         <!-- Co-Authors Section -->
                         <h5 class="fw-bold mt-4 mb-3"><i class="bi bi-people me-2 text-primary"></i>Co-Authors</h5>
-                        <p class="text-muted small mb-3">Add co-authors to your article. They will only be visible to editors.</p>
+                        <p class="text-muted small mb-3">List every author of the article, in order. All names appear on the published article and its PDF. Add as many co-authors as you need.</p>
                         
                         <div id="coauthor-formset">
                             {{ formset.management_form }}
@@ -116,7 +116,7 @@
                         <li>Include relevant keywords for discoverability</li>
                         <li>Your article will be reviewed by peers</li>
                         <li>You can save as draft and submit later</li>
-                        <li>Co-authors are only visible to editors, not to reviewers</li>
+                        <li>All authors you list appear on the published article and its PDF</li>
                         <li>Toggle anonymous submission to hide your identity from reviewers</li>
                     </ul>
                 </div>
@@ -148,34 +148,43 @@
 document.addEventListener('DOMContentLoaded', function() {
     const addBtn = document.getElementById('add-coauthor');
     const formset = document.getElementById('coauthor-formset');
-    const totalForms = document.querySelector('[name="co_author_set-TOTAL_FORMS"]');
-    
+    // Use the formset's real prefix — it is derived from the model relation
+    // name, so it stays correct even if the model changes.
+    const totalForms = document.querySelector('[name="{{ formset.prefix }}-TOTAL_FORMS"]');
+    if (!addBtn || !formset || !totalForms) return;
+
     addBtn.addEventListener('click', function() {
-        const currentCount = parseInt(totalForms.value);
-        const newRow = formset.querySelector('.coauthor-row').cloneNode(true);
-        
-        // Clean the cloned row
-        newRow.querySelectorAll('input, select, textarea').forEach(function(input) {
-            const name = input.getAttribute('name');
-            if (name) {
-                const newName = name.replace(/\d+/, currentCount);
-                input.setAttribute('name', newName);
-                input.setAttribute('id', newName);
-                input.value = '';
-            }
-            const id = input.getAttribute('id');
-            if (id) {
-                input.setAttribute('id', id.replace(/\d+/, currentCount));
+        const currentCount = parseInt(totalForms.value, 10);
+        const rows = formset.querySelectorAll('.coauthor-row');
+        const newRow = rows[rows.length - 1].cloneNode(true);
+
+        // Renumber the cloned fields so the formset receives a new, empty row.
+        newRow.querySelectorAll('input, select, textarea').forEach(function(field) {
+            const name = field.getAttribute('name');
+            if (!name) return;
+            const newName = name.replace(/\d+/, currentCount);
+            field.setAttribute('name', newName);
+            field.setAttribute('id', 'id_' + newName);
+            if (field.type === 'checkbox' || field.type === 'radio') {
+                field.checked = false;
+            } else {
+                field.value = '';
             }
         });
-        
-        // Remove the DELETE checkbox from new row
+        newRow.querySelectorAll('label[for]').forEach(function(label) {
+            label.setAttribute('for', label.getAttribute('for').replace(/\d+/, currentCount));
+        });
+
+        // New rows have no saved record: drop the Remove checkbox and any
+        // validation messages copied from the cloned row.
         const deleteDiv = newRow.querySelector('.form-check');
         if (deleteDiv) deleteDiv.remove();
-        
-        // Insert before the last row or append
+        newRow.querySelectorAll('.text-danger').forEach(function(el) { el.remove(); });
+
         formset.appendChild(newRow);
         totalForms.value = currentCount + 1;
+        const firstField = newRow.querySelector('input:not([type="hidden"])');
+        if (firstField) firstField.focus();
     });
 });
 </script>

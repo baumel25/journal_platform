@@ -44,10 +44,7 @@
                             </a>
                         </h5>
                         <div class="small text-muted mb-2">
-                            <i class="bi bi-person me-1"></i>{{ article.author.username }}
-                            {% if article.co_authors.exists %}
-                                <i class="bi bi-people ms-2 me-1"></i>{{ article.co_authors.count }} co-author{{ article.co_authors.count|pluralize }}
-                            {% endif %}
+                            <i class="bi bi-person me-1"></i>{{ article.author.get_full_name|default:article.author.username }}{% for co in article.co_authors.all %}, {{ co.name }}{% endfor %}
                             {% if article.published_date %}
                                 <i class="bi bi-calendar-event ms-2 me-1"></i>{{ article.published_date|date:"M d, Y" }}
                             {% endif %}

@@ -144,7 +144,13 @@ def article_detail(request, pk):
                 has_submitted_review = True
 
     # Co-author visibility: editors and the article author can see them, reviewers cannot
-    can_see_coauthors = is_author_viewing or (is_authenticated and user.is_editor())
+    # Published articles show every author publicly; before publication the
+    # co-author list stays visible only to the author and editors.
+    can_see_coauthors = (
+        is_author_viewing
+        or (is_authenticated and user.is_editor())
+        or article.status == 'published'
+    )
     co_authors = article.co_authors.all() if can_see_coauthors else []
 
     # Count a "view" for journal statistics — skip the author/editor so internal
@@ -1289,7 +1295,11 @@ def journal_about(request):
 
 def published_articles(request):
     """Public listing of published articles (preview: title + abstract only)."""
-    articles = Article.objects.filter(status='published').order_by('-published_date')
+    articles = (
+        Article.objects.filter(status='published')
+        .prefetch_related('co_authors')
+        .order_by('-published_date')
+    )
     return render(request, 'articles/published_articles.html', {'articles': articles})
 
 
@@ -1369,7 +1379,11 @@ def journal_hub(request):
     Left: journal menu + guidelines | Centre: journal identity + latest
     articles | Right: journal statistics.
     """
-    published = Article.objects.filter(status='published').order_by('-published_date')
+    published = (
+        Article.objects.filter(status='published')
+        .prefetch_related('co_authors')
+        .order_by('-published_date')
+    )
     latest = published[:6]
     total = published.count()
     return render(request, 'articles/journal_hub.html', {
