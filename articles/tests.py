@@ -166,3 +166,21 @@ class ArticleAuthorsTests(TestCase):
         article = Article.objects.get(title='Fresh Manuscript')
         self.assertEqual(article.co_authors.count(), 3)
 
+
+@override_settings(STORAGES={
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+})
+class JournalPageCtaTests(TestCase):
+    """Join/submit call-to-action buttons on the journal pages."""
+
+    def test_journal_hub_join_submit_button(self):
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Join &amp; Submit Your Article')
+
+    def test_author_guidelines_submit_cta(self):
+        response = self.client.get(reverse('author_guidelines'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Submit Your Article')
+
