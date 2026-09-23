@@ -11,4 +11,10 @@ media/article_files/
 .DS_Store
 staticfiles/
 _test*
+# MoMo sandbox credentials / KYC paperwork — never commit
+_momo*
+momo_kyc/
+_download_kyc.py
+_extract_kyc.py
+_peek_kyc.py
 # static/vendor/ — uncommented because Railway needs these for collectstatic

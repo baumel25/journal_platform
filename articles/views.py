@@ -9,12 +9,14 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.db.models import Count
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from .models import Article, Review, ReviewInvitation, CoAuthor, ArticlePurchase
 from .forms import ArticleForm, ReviewForm, CoAuthorFormSet
 from .utils import notify_editors_new_submission, notify_author_submission, notify_author_decision, notify_reviewer_invitation, notify_editor_invitation_response
 from .momo import MomoClient, MomoError, MomoNotConfigured, is_gateway_configured
+from .orange import OrangeClient, OrangeError, OrangeNotConfigured, is_orange_configured
 from .journal_pdf import (
     generate_journal_pdf,
     generate_cover_pdf,
@@ -434,6 +436,7 @@ def editor_dashboard(request):
         'total_users': User.objects.count(),
         'total_reviews': Review.objects.count(),
         'pending_review_approvals': pending_review_approvals,
+        'pending_payment_requests': ArticlePurchase.objects.filter(status='pending').count(),
         'recent_articles': articles.order_by('-created_at')[:5],
         'recent_reviews': reviews,
     }
@@ -762,6 +765,72 @@ def editor_reject_review(request, pk):
     return render(request, 'editor/review_reject.html', context)
 
 
+# ========== PAYMENT REQUEST VIEWS (readers pay manually, editors confirm) ==========
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_payment_requests(request):
+    """List reader payment requests so an editor can confirm and unlock articles."""
+    pending_purchases = ArticlePurchase.objects.filter(
+        status='pending',
+    ).select_related('article', 'user').order_by('-created_at')
+    recent_paid = ArticlePurchase.objects.filter(
+        status='paid',
+    ).select_related('article', 'user').order_by('-paid_at')[:10]
+    recent_failed = ArticlePurchase.objects.filter(
+        status__in=['failed', 'cancelled'],
+    ).select_related('article', 'user').order_by('-created_at')[:10]
+
+    context = {
+        'active': 'payments',
+        'pending_purchases': pending_purchases,
+        'recent_paid': recent_paid,
+        'recent_failed': recent_failed,
+    }
+    return render(request, 'editor/payment_requests.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_confirm_payment(request, pk):
+    """Confirm a reader's manual payment — unlocks the full article for them."""
+    purchase = get_object_or_404(ArticlePurchase, pk=pk)
+
+    if request.method != 'POST':
+        return redirect('editor_payment_requests')
+
+    if purchase.status == 'paid':
+        messages.info(request, f'Payment {purchase.reference} is already confirmed.')
+        return redirect('editor_payment_requests')
+
+    purchase.mark_paid()
+    messages.success(
+        request,
+        f'Payment {purchase.reference} confirmed — "{purchase.article.title}" is now '
+        f'unlocked for {purchase.user.username} ({purchase.phone_number}).'
+    )
+    return redirect('editor_payment_requests')
+
+
+@login_required
+@user_passes_test(lambda u: u.is_editor())
+def editor_fail_payment(request, pk):
+    """Mark a payment request as failed (money never received / wrong number)."""
+    purchase = get_object_or_404(ArticlePurchase, pk=pk)
+
+    if request.method != 'POST':
+        return redirect('editor_payment_requests')
+
+    if purchase.status == 'paid':
+        messages.warning(request, 'A confirmed payment cannot be marked as failed.')
+        return redirect('editor_payment_requests')
+
+    purchase.status = 'failed'
+    purchase.save(update_fields=['status'])
+    messages.warning(request, f'Payment request {purchase.reference} marked as failed.')
+    return redirect('editor_payment_requests')
+
+
 @login_required
 def download_article_pdf(request, pk):
     """Download an article as PDF (ReportLab; no xhtml2pdf dependency)."""
@@ -817,18 +886,18 @@ def download_article_pdf(request, pk):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# Paid access to full published articles (MTN MoMo)
+# Paid access to full published articles (MTN MoMo / Orange Money)
 # ═══════════════════════════════════════════════════════════════════════════
 
 def _validate_momo_number(phone):
-    """Return True if the phone looks like a Cameroonian MoMo number (6XXXXXXXX)."""
+    """Return True if the phone looks like a Cameroonian MTN MoMo number (6XXXXXXXX)."""
     import re
     return bool(re.fullmatch(r'6\d{8}', str(phone).strip()))
 
 
 @login_required
 def pay_article(request, pk):
-    """Payment page to unlock a full published article."""
+    """Payment page to unlock a full published article (MTN MoMo or Orange Money)."""
     article = get_object_or_404(Article, pk=pk)
     if article.status != 'published':
         messages.error(request, 'Only published articles can be purchased.')
@@ -841,17 +910,23 @@ def pay_article(request, pk):
         messages.info(request, 'You already have full access to this article.')
         return redirect('article_detail', pk=article.pk)
 
-    gateway_configured = is_gateway_configured()
+    provider = request.POST.get('provider', 'mtn_momo')
+    if provider not in ('mtn_momo', 'orange_money'):
+        provider = 'mtn_momo'
+
     context = {
         'article': article,
-        'gateway_configured': gateway_configured,
         'phone': request.POST.get('phone_number', ''),
+        'selected_provider': provider,
+        'mtn_configured': is_gateway_configured(),
+        'orange_configured': is_orange_configured(),
     }
 
     if request.method == 'POST':
         phone = request.POST.get('phone_number', '').strip()
         if not _validate_momo_number(phone):
-            messages.error(request, 'Please enter a valid MoMo number (format: 6XXXXXXXX).')
+            provider_name = 'Orange Money' if provider == 'orange_money' else 'MTN MoMo'
+            messages.error(request, f'Please enter a valid {provider_name} number (format: 6XXXXXXXX).')
             context['phone'] = phone
             return render(request, 'articles/pay_article.html', context)
 
@@ -859,16 +934,39 @@ def pay_article(request, pk):
             article=article,
             user=request.user,
             status='pending',
-            defaults={'amount': article.price, 'phone_number': phone},
+            defaults={'amount': article.price, 'phone_number': phone, 'provider': provider},
         )
         if not purchase.reference:
             purchase.reference = purchase.generate_reference()
         purchase.amount = article.price
         purchase.phone_number = phone
+        purchase.provider = provider
         purchase.status = 'pending'
         purchase.save()
 
-        if gateway_configured:
+        # ── initiate the payment with the chosen gateway (or manual mode) ──
+        if provider == 'orange_money' and is_orange_configured():
+            try:
+                client = OrangeClient()
+                payment_url, notif_token = client.create_payment(
+                    amount=article.price,
+                    order_id=purchase.reference,
+                    return_url=f'{settings.BASE_URL}{reverse("payment_status", args=[article.pk])}',
+                    cancel_url=f'{settings.BASE_URL}{reverse("article_detail", args=[article.pk])}',
+                    notif_url=f'{settings.BASE_URL}{reverse("orange_payment_notif")}',
+                )
+                purchase.momo_transaction_id = notif_token
+                purchase.save(update_fields=['momo_transaction_id'])
+                return redirect(payment_url)
+            except OrangeError as exc:
+                logger.error('Orange create_payment failed for %s: %s', purchase.reference, exc)
+                messages.error(
+                    request,
+                    'We could not reach Orange Money. Please try again in a moment '
+                    'or contact the editorial office.'
+                )
+                return render(request, 'articles/pay_article.html', context)
+        elif provider == 'mtn_momo' and is_gateway_configured():
             try:
                 client = MomoClient()
                 reference_id, _ = client.request_to_pay(
@@ -912,19 +1010,28 @@ def payment_status(request, pk):
         messages.info(request, 'No payment found for this article.')
         return redirect('pay_article', pk=article.pk)
 
-    # If still pending and we have a MoMo transaction id, check the gateway so
-    # the page reflects the true state even without the callback.
-    if (purchase.status == 'pending' and purchase.momo_transaction_id
-            and is_gateway_configured()):
+    # If still pending and we have a gateway reference, ask the chosen provider
+    # so the page reflects the true state even without a callback arriving.
+    if purchase.status == 'pending' and purchase.momo_transaction_id:
         try:
-            data = MomoClient().get_transaction_status(purchase.momo_transaction_id)
-            momo_status = (data.get('status') or '').upper()
-            if momo_status == 'SUCCESSFUL':
-                purchase.mark_paid(data.get('financialTransactionId', ''))
-            elif momo_status == 'FAILED':
-                purchase.status = 'failed'
-                purchase.save(update_fields=['status'])
-        except MomoError:
+            if purchase.provider == 'orange_money' and is_orange_configured():
+                data = OrangeClient().get_transaction_status(
+                    purchase.reference, notif_token=purchase.momo_transaction_id)
+                gateway_status = (data.get('status') or '').upper()
+                if gateway_status in ('SUCCESS', 'SUCCESSFUL', '200', 'PAID'):
+                    purchase.mark_paid(data.get('txnid', ''))
+                elif gateway_status in ('FAILED', 'CANCELLED', 'CANCELED'):
+                    purchase.status = 'failed'
+                    purchase.save(update_fields=['status'])
+            elif purchase.provider == 'mtn_momo' and is_gateway_configured():
+                data = MomoClient().get_transaction_status(purchase.momo_transaction_id)
+                momo_status = (data.get('status') or '').upper()
+                if momo_status == 'SUCCESSFUL':
+                    purchase.mark_paid(data.get('financialTransactionId', ''))
+                elif momo_status == 'FAILED':
+                    purchase.status = 'failed'
+                    purchase.save(update_fields=['status'])
+        except (MomoError, OrangeError):
             pass  # keep pending; the callback may still confirm it
 
     if not purchase.reference:
@@ -934,9 +1041,46 @@ def payment_status(request, pk):
     context = {
         'article': article,
         'purchase': purchase,
-        'gateway_configured': is_gateway_configured(),
+        'mtn_configured': is_gateway_configured(),
+        'orange_configured': is_orange_configured(),
     }
     return render(request, 'articles/payment_status.html', context)
+
+
+@csrf_exempt
+def orange_payment_notif(request):
+    """Notification endpoint Orange calls after a Web Payment completes.
+
+    Orange can deliver the notification as a GET or POST (query params and/or
+    JSON body) carrying the order id and the payment status. The exact field
+    names must be confirmed against the merchant integration document; we look
+    up the purchase by its reference (used as the Orange order_id) and unlock
+    it on success.
+    """
+    params = {}
+    if request.method == 'POST':
+        try:
+            params = json.loads(request.body or b'{}')
+        except (ValueError, TypeError):
+            params = {}
+        params.update(request.POST.dict())
+    params.update(request.GET.dict())
+
+    order_id = (params.get('order_id') or params.get('orderId')
+                or params.get('reference') or '')
+    status = (params.get('status') or params.get('payment_status') or '').upper()
+
+    purchase = ArticlePurchase.objects.filter(reference=order_id).first()
+    if purchase and status in ('SUCCESS', 'SUCCESSFUL', '200', 'PAID'):
+        purchase.mark_paid(params.get('txnid', params.get('transaction_id', '')))
+        return HttpResponse('OK')
+    if purchase and status in ('FAILED', 'CANCELLED', 'CANCELED'):
+        purchase.status = 'failed'
+        purchase.save(update_fields=['status'])
+        return HttpResponse('OK')
+
+    logger.info('Orange notif for unknown order (order_id=%s, status=%s)', order_id, status)
+    return HttpResponse('No matching payment', status=404)
 
 
 @csrf_exempt

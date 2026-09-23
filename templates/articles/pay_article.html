@@ -47,16 +47,55 @@
                 </div>
             </div>
 
-            {% if gateway_configured %}
-            <!-- Pay with MoMo -->
+            <!-- Choose payment method -->
             <div class="card-modern mb-4">
                 <div class="card-body p-4">
+                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-credit-card me-2"></i>Choose how to pay</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="provider-option {% if selected_provider != 'orange_money' %}selected{% endif %}" for="opt_mtn" style="cursor:pointer; display:block; border:2px solid #dee2e6; border-radius:14px; padding:1rem; transition:border-color .15s;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="provider_picker" id="opt_mtn" value="mtn_momo"
+                                           {% if selected_provider != 'orange_money' %}checked{% endif %} onchange="toggleProvider('mtn_momo')">
+                                    <span class="fw-semibold"><i class="bi bi-phone me-1 text-primary"></i>MTN Mobile Money</span>
+                                </div>
+                                <small class="text-muted d-block mt-1 ps-4">Pay from any MTN MoMo number (6XXXXXXXX)</small>
+                            </label>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="provider-option {% if selected_provider == 'orange_money' %}selected{% endif %}" for="opt_orange" style="cursor:pointer; display:block; border:2px solid #dee2e6; border-radius:14px; padding:1rem; transition:border-color .15s;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="provider_picker" id="opt_orange" value="orange_money"
+                                           {% if selected_provider == 'orange_money' %}checked{% endif %} onchange="toggleProvider('orange_money')">
+                                    <span class="fw-semibold"><i class="bi bi-phone me-1 text-warning"></i>Orange Money</span>
+                                </div>
+                                <small class="text-muted d-block mt-1 ps-4">Pay from any Orange Money number (6XXXXXXXX)</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MTN MoMo panel -->
+            <div class="card-modern mb-4" id="panel_mtn_momo" {% if selected_provider == 'orange_money' %}style="display:none;"{% endif %}>
+                <div class="card-body p-4">
                     <h5 class="fw-bold text-primary mb-3"><i class="bi bi-phone me-2"></i>Pay with MTN Mobile Money</h5>
-                    <p class="text-muted">A payment prompt will be sent to your MTN MoMo number.</p>
+                    {% if mtn_configured %}
+                        <p class="text-muted">A payment prompt will be sent to your MTN MoMo number.</p>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Online mobile money is being set up. For now, send
+                            <strong>{{ article.price }} FCFA</strong> via <strong>MTN MoMo</strong> to
+                            <strong>(237) {{ payment_mtn_number }}</strong> and the editorial office will
+                            unlock the article for your account.
+                        </div>
+                    {% endif %}
                     <form method="post" class="row g-3 align-items-end">
                         {% csrf_token %}
+                        <input type="hidden" name="provider" value="mtn_momo">
                         <div class="col-md-7">
-                            <label for="phone_number" class="form-label fw-semibold">MTN MoMo Number</label>
+                            <label for="phone_number" class="form-label fw-semibold">Your MTN MoMo Number</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-telephone"></i></span>
                                 <input type="tel" class="form-control" id="phone_number" name="phone_number"
@@ -72,39 +111,59 @@
                     </form>
                 </div>
             </div>
-            {% else %}
-            <!-- Manual payment instructions -->
-            <div class="card-modern mb-4">
+
+            <!-- Orange Money panel -->
+            <div class="card-modern mb-4" id="panel_orange_money" {% if selected_provider != 'orange_money' %}style="display:none;"{% endif %}>
                 <div class="card-body p-4">
-                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-cash-coin me-2"></i>How to Pay</h5>
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Online mobile money is being set up. For now, please pay
-                        <strong>{{ article.price }} FCFA</strong> via <strong>MTN MoMo</strong> to
-                        <strong>(237) 676102438</strong> and our editorial office will unlock the
-                        article for your account.
-                    </div>
+                    <h5 class="fw-bold text-warning mb-3"><i class="bi bi-phone me-2"></i>Pay with Orange Money</h5>
+                    {% if orange_configured %}
+                        <p class="text-muted">You will be redirected to Orange to complete your payment securely.</p>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Online Orange Money is being set up. For now, send
+                            <strong>{{ article.price }} FCFA</strong> via <strong>Orange Money</strong> to
+                            <strong>(237) {{ payment_orange_number }}</strong> and the editorial office will
+                            unlock the article for your account.
+                        </div>
+                    {% endif %}
                     <form method="post" class="row g-3 align-items-end">
                         {% csrf_token %}
+                        <input type="hidden" name="provider" value="orange_money">
                         <div class="col-md-7">
-                            <label for="phone_number" class="form-label fw-semibold">Your MoMo Number</label>
+                            <label for="orange_phone" class="form-label fw-semibold">Your Orange Money Number</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                                <input type="tel" class="form-control" id="phone_number" name="phone_number"
+                                <input type="tel" class="form-control" id="orange_phone" name="phone_number"
                                        value="{{ phone }}" placeholder="6XXXXXXXX" pattern="6[0-9]{8}" maxlength="9" required>
                             </div>
-                            <div class="form-text">We will use this to confirm your payment.</div>
+                            <div class="form-text">Enter the 9-digit Orange Money number, e.g. 6XXXXXXXX.</div>
                         </div>
                         <div class="col-md-5 d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4">
-                                <i class="bi bi-check2-circle me-1"></i>I Have Paid
+                            <button type="submit" class="btn btn-warning btn-lg rounded-pill px-4 text-dark">
+                                <i class="bi bi-wallet2 me-1"></i>Pay {{ article.price }} FCFA
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
-            {% endif %}
         </div>
     </div>
 </div>
+
+<script>
+function toggleProvider(provider) {
+    var panels = document.querySelectorAll('[id^="panel_"]');
+    panels.forEach(function(p){ p.style.display = 'none'; });
+    var target = document.getElementById('panel_' + provider);
+    if (target) target.style.display = '';
+    var labels = document.querySelectorAll('.provider-option');
+    labels.forEach(function(l){ l.classList.remove('selected'); l.style.borderColor = '#dee2e6'; });
+    var active = document.getElementById('opt_' + provider);
+    if (active && active.closest('label')) {
+        active.closest('label').classList.add('selected');
+        active.closest('label').style.borderColor = 'var(--primary, #4f46e5)';
+    }
+}
+</script>
 {% endblock %}

@@ -314,6 +314,15 @@
                 <i class="bi bi-star"></i>
                 <span>All Reviews</span>
             </a>
+
+            <div class="nav-section-title mt-2">Payments</div>
+            <a href="{% url 'editor_payment_requests' %}" class="nav-item {% if active == 'payments' %}active{% endif %}">
+                <i class="bi bi-cash-coin"></i>
+                <span>Payment Requests</span>
+                {% if pending_payment_count %}
+                    <span class="badge rounded-pill bg-warning text-dark ms-auto">{{ pending_payment_count }}</span>
+                {% endif %}
+            </a>
         </div>
         
         <div class="sidebar-footer">

@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         now = timezone.now()
-        milestones = [50, 75, 80, 85, 90, 95, 98]
+        milestones = [50, 75, 80, 90, 95, 98, 99]
         notified_count = 0
         skipped_count = 0
 

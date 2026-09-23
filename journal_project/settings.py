@@ -72,6 +72,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'journal_project.context_processors.payment_receivers',
+                'journal_project.context_processors.pending_payments',
             ],
         },
     },
@@ -208,3 +210,24 @@ MOMO_CALLBACK_URL = os.environ.get(
     'MOMO_CALLBACK_URL',
     f"{BASE_URL.rstrip('/')}/articles/payment/callback/",
 )
+
+# ─── Orange Money payment gateway (second payment option) ─────────────────
+# See https://developer.orange.com/apis/om-webpay (merchant-only API).
+# If the credentials are empty the site falls back to manual confirmation for
+# Orange Money (instructions + editor confirmation from the Django admin).
+ORANGE_CLIENT_ID = os.environ.get('ORANGE_CLIENT_ID', '')
+ORANGE_CLIENT_SECRET = os.environ.get('ORANGE_CLIENT_SECRET', '')
+ORANGE_MERCHANT_KEY = os.environ.get('ORANGE_MERCHANT_KEY', '')
+ORANGE_BASE_URL = os.environ.get('ORANGE_BASE_URL', 'https://api.orange.com')
+ORANGE_COUNTRY_CODE = os.environ.get('ORANGE_COUNTRY_CODE', 'cm')
+ORANGE_NOTIF_URL = os.environ.get(
+    'ORANGE_NOTIF_URL',
+    f"{BASE_URL.rstrip('/')}/articles/payment/orange/notif/",
+)
+
+# ─── Journal manager payment receivers ───────────────────────────────────
+# The journal manager's mobile-money accounts that receive reader payments and
+# journal fees. Used everywhere the platform asks a reader/author to pay.
+# Format: 9-digit Cameroonian number WITHOUT the country code, e.g. 6XXXXXXXX.
+PAYMENT_MTN_NUMBER = os.environ.get('PAYMENT_MTN_NUMBER', '678391473')
+PAYMENT_ORANGE_NUMBER = os.environ.get('PAYMENT_ORANGE_NUMBER', '699462394')

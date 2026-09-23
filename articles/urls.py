@@ -8,6 +8,7 @@ urlpatterns = [
     path('<int:pk>/pay/', views.pay_article, name='pay_article'),
     path('<int:pk>/payment/', views.payment_status, name='payment_status'),
     path('payment/callback/', views.payment_callback, name='payment_callback'),
+    path('payment/orange/notif/', views.orange_payment_notif, name='orange_payment_notif'),
     path('my-purchases/', views.my_purchases, name='my_purchases'),
     # Journal documents
     path('journal/about/', views.journal_about, name='journal_about'),
@@ -52,6 +53,11 @@ urlpatterns = [
     path('editor/review/<int:pk>/reject/', views.editor_reject_review, name='editor_reject_review'),
     path('editor/article/<int:pk>/edit/', views.editor_article_edit, name='editor_article_edit'),
     path('editor/article/<int:pk>/delete/', views.editor_article_delete, name='editor_article_delete'),
+
+    # Payment Requests (editors confirm reader payments to unlock articles)
+    path('editor/payments/', views.editor_payment_requests, name='editor_payment_requests'),
+    path('editor/payments/<int:pk>/confirm/', views.editor_confirm_payment, name='editor_confirm_payment'),
+    path('editor/payments/<int:pk>/fail/', views.editor_fail_payment, name='editor_fail_payment'),
     
     # User Management URLs
     path('editor/users/', views.editor_users, name='editor_users'),

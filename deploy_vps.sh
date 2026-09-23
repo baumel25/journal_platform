@@ -11,8 +11,8 @@ DOMAIN2="jcsajournal.com"       # secondary domain
 APP_DIR="/opt/journal_platform"
 DB_NAME="journal"
 DB_USER="journal"
-EMAIL_USER="${EMAIL_HOST_USER:-christianyonta73@gmail.com}"
-EMAIL_PASS="${EMAIL_HOST_PASSWORD:-}"   # set your Gmail app password here if you have one
+EMAIL_USER="${EMAIL_HOST_USER:-instructorhttcjcsa@gmail.com}"
+EMAIL_PASS="${EMAIL_HOST_PASSWORD:-}"   # Gmail app password for EMAIL_USER (required — emails won't send without it)
 SERVER_IP="$(curl -4 -s ifconfig.me || echo '2.24.1.242')"
 
 export DEBIAN_FRONTEND=noninteractive
@@ -110,6 +110,16 @@ ln -sf /etc/nginx/sites-available/journal /etc/nginx/sites-enabled/journal
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl enable --now nginx && systemctl reload nginx
 
+echo "==> [10/10] Scheduling review-deadline reminder emails (hourly)..."
+
+# Run check_deadlines every hour so reviewers get their 50/75/80/90/95/98/99%
+# deadline reminders. Idempotent — safe to re-run the deploy script.
+mkdir -p "${APP_DIR}/logs"
+(crontab -l 2>/dev/null | grep -v 'manage.py check_deadlines'; \
+ echo "0 * * * * cd ${APP_DIR} && ./venv/bin/python manage.py check_deadlines >> ${APP_DIR}/logs/deadlines.log 2>&1") \
+  | crontab -
+echo "Cron installed: hourly 'manage.py check_deadlines' (see ${APP_DIR}/logs/deadlines.log)"
+
 echo ""
 echo "=========================================================="
 echo " Deploy complete! App is running via gunicorn + nginx."
@@ -118,6 +128,8 @@ echo " Server:   http://${SERVER_IP}"
 echo ""
 echo " IMPORTANT: save the PostgreSQL password below (it's in ${APP_DIR}/.env):"
 echo "   DB_USER=${DB_USER}  DB_PASS=${DB_PASS}"
+echo ""
+echo " Emails are sent from: ${EMAIL_USER} (requires a Gmail App Password in EMAIL_HOST_PASSWORD)"
 echo ""
 echo " Next: once DNS points here, run:  certbot --nginx -d ${DOMAIN1} -d www.${DOMAIN1} -d ${DOMAIN2} -d www.${DOMAIN2}"
 echo "=========================================================="

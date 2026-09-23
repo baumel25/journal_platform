@@ -220,12 +220,18 @@ class ArticlePurchase(models.Model):
         ('cancelled', 'Cancelled'),
     )
 
+    PROVIDER_CHOICES = (
+        ('mtn_momo', 'MTN Mobile Money'),
+        ('orange_money', 'Orange Money'),
+    )
+
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='purchases')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='article_purchases')
     amount = models.DecimalField(max_digits=10, decimal_places=0, help_text='Amount paid in FCFA')
     phone_number = models.CharField(max_length=20, help_text='MoMo number used for the payment (format: 6XXXXXXXX)')
     reference = models.CharField(max_length=40, unique=True, blank=True, help_text='Internal payment reference (format: PAY-YYYY-XXXX)')
-    momo_transaction_id = models.CharField(max_length=100, blank=True, help_text='MTN MoMo request-to-pay transaction reference')
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, default='mtn_momo', help_text='Payment method the reader chose')
+    momo_transaction_id = models.CharField(max_length=100, blank=True, help_text='Gateway transaction / notification reference')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)

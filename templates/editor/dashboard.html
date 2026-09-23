@@ -39,6 +39,17 @@
             {% endif %}
         </div>
     </div>
+    <div class="stat-card" style="{% if pending_payment_requests %}border-left: 4px solid #10b981;{% endif %}">
+        <h3>Payment Requests <span style="font-weight: normal; font-size: 0.8rem;">(Unlock Articles)</span></h3>
+        <div class="stat-number {% if pending_payment_requests %}text-success{% endif %}">
+            {{ pending_payment_requests }}
+            {% if pending_payment_requests %}
+                <a href="{% url 'editor_payment_requests' %}" class="btn btn-sm btn-success ms-2" style="font-size: 0.7rem; vertical-align: middle;">
+                    <i class="bi bi-unlock"></i> Confirm
+                </a>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <div class="data-table" style="margin-top: 1.5rem;">

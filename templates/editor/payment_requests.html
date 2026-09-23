@@ -1,0 +1,138 @@
+{% extends 'editor/base_admin.html' %}
+
+{% block page_title %}Payment Requests{% endblock %}
+
+{% block content %}
+<div class="alert alert-light border" style="display:flex; gap:0.75rem; align-items:flex-start;">
+    <i class="bi bi-info-circle" style="font-size:1.4rem; color:#1F3864;"></i>
+    <div>
+        <strong>Manual payment confirmation.</strong>
+        When a reader sends the article fee, confirm it here to unlock the article on
+        their account. Reader payments are received on
+        <strong>MTN MoMo (237) {{ payment_mtn_number }}</strong> or
+        <strong>Orange Money (237) {{ payment_orange_number }}</strong>.
+        Match the reader's number below with the transfer before confirming.
+    </div>
+</div>
+
+<h3>Pending Payment Requests</h3>
+<div class="data-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Reference</th>
+                <th>Article</th>
+                <th>Reader</th>
+                <th>Paid From</th>
+                <th>Provider</th>
+                <th>Amount</th>
+                <th>Requested</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in pending_purchases %}
+            <tr>
+                <td><strong>{{ purchase.reference }}</strong></td>
+                <td>
+                    <a href="{% url 'article_detail' purchase.article.pk %}">{{ purchase.article.title|truncatechars:45 }}</a>
+                </td>
+                <td>
+                    {{ purchase.user.get_full_name|default:purchase.user.username }}
+                    <br><small class="text-muted">{{ purchase.user.email|default:purchase.user.username }}</small>
+                </td>
+                <td><strong>{{ purchase.phone_number }}</strong></td>
+                <td>{{ purchase.get_provider_display }}</td>
+                <td><strong>{{ purchase.amount|floatformat:0 }} FCFA</strong></td>
+                <td>{{ purchase.created_at|date:"M d, Y H:i" }}</td>
+                <td style="white-space: nowrap;">
+                    <form method="post" action="{% url 'editor_confirm_payment' purchase.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn btn-edit" style="border:none; cursor:pointer;"
+                                onclick="return confirm('Confirm this payment and unlock the article for this reader?');">
+                            <i class="bi bi-unlock me-1"></i>Confirm &amp; Unlock
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'editor_fail_payment' purchase.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn btn-delete" style="border:none; cursor:pointer;"
+                                onclick="return confirm('Mark this payment request as failed?');">
+                            <i class="bi bi-x-circle me-1"></i>Not received
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 2rem; opacity: 0.3;" class="mb-2">
+                        <i class="bi bi-check2-all"></i>
+                    </div>
+                    <strong>All caught up!</strong><br>
+                    <small class="text-muted">No payment requests are waiting for confirmation.</small>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if recent_paid %}
+<h3 style="margin-top: 2rem;">Recently Confirmed (Articles Unlocked)</h3>
+<div class="data-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Reference</th>
+                <th>Article</th>
+                <th>Reader</th>
+                <th>Amount</th>
+                <th>Confirmed</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in recent_paid %}
+            <tr>
+                <td>{{ purchase.reference }}</td>
+                <td>{{ purchase.article.title|truncatechars:45 }}</td>
+                <td>{{ purchase.user.get_full_name|default:purchase.user.username }}</td>
+                <td>{{ purchase.amount|floatformat:0 }} FCFA</td>
+                <td>
+                    <span class="status-badge status-approved">Unlocked</span>
+                    {{ purchase.paid_at|date:"M d, Y H:i" }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if recent_failed %}
+<h3 style="margin-top: 2rem;">Recently Marked Failed</h3>
+<div class="data-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Reference</th>
+                <th>Article</th>
+                <th>Reader</th>
+                <th>Amount</th>
+                <th>Marked</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in recent_failed %}
+            <tr>
+                <td>{{ purchase.reference }}</td>
+                <td>{{ purchase.article.title|truncatechars:45 }}</td>
+                <td>{{ purchase.user.get_full_name|default:purchase.user.username }}</td>
+                <td>{{ purchase.amount|floatformat:0 }} FCFA</td>
+                <td><span class="status-badge status-rejected">{{ purchase.get_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

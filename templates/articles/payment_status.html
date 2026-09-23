@@ -80,17 +80,33 @@
                     </div>
                     <h4 class="fw-bold mb-2">Payment Pending</h4>
                     <p class="text-muted mb-4">
-                        {% if gateway_configured %}
-                            We have sent a payment request to your MTN MoMo number
-                            <strong>{{ purchase.phone_number }}</strong>. Please approve the prompt
-                            on your phone to complete the payment.
+                        {% if purchase.provider == 'orange_money' %}
+                            {% if orange_configured %}
+                                You were redirected to Orange Money to complete your payment. If you have
+                                not finished, you can restart it below. Once Orange confirms your payment,
+                                your access will be activated.
+                            {% else %}
+                                Your Orange Money payment (reference <strong>{{ purchase.reference }}</strong>)
+                                has been recorded. Once the editorial office confirms your payment, your
+                                access will be activated.
+                            {% endif %}
                         {% else %}
-                            Your payment request (reference <strong>{{ purchase.reference }}</strong>) has
-                            been recorded. Once the editorial office confirms your payment, your access
-                            will be activated.
+                            {% if mtn_configured %}
+                                We have sent a payment request to your MTN MoMo number
+                                <strong>{{ purchase.phone_number }}</strong>. Please approve the prompt
+                                on your phone to complete the payment.
+                            {% else %}
+                                Your payment request (reference <strong>{{ purchase.reference }}</strong>) has
+                                been recorded. Once the editorial office confirms your payment, your access
+                                will be activated.
+                            {% endif %}
                         {% endif %}
                     </p>
                     <div class="mx-auto mb-4" style="max-width: 420px;">
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Payment method</span>
+                            <strong>{{ purchase.get_provider_display }}</strong>
+                        </div>
                         <div class="d-flex justify-content-between py-2 border-bottom">
                             <span class="text-muted">Reference</span>
                             <strong>{{ purchase.reference }}</strong>

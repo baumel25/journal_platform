@@ -287,11 +287,6 @@ def send_deadline_reminder(invitation, milestone):
             f"{progress:.0f}% of the review period has elapsed. "
             f"We kindly remind you that your review is due soon."
         )
-    elif milestone == 85:
-        reminder_text = (
-            f"{progress:.0f}% of the review period is complete. "
-            f"The deadline is approaching — please finalize your review."
-        )
     elif milestone == 90:
         reminder_text = (
             f"Only 10% of the review period remains ({progress:.0f}% elapsed)! "
@@ -306,6 +301,12 @@ def send_deadline_reminder(invitation, milestone):
         reminder_text = (
             f"Final reminder: {progress:.0f}% of the review period has elapsed. "
             f"Your review is due very soon. Please submit immediately to avoid delays."
+        )
+    elif milestone == 99:
+        reminder_text = (
+            f"CRITICAL: {progress:.0f}% of the review period has elapsed. "
+            f"The deadline is here or has nearly passed — please submit your review "
+            f"immediately to avoid being marked as overdue."
         )
     else:
         reminder_text = (
