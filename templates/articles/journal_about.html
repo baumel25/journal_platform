@@ -124,6 +124,27 @@
                     </ul>
                 </div>
             </div>
+
+            <!-- Submit your article CTA -->
+            <div class="card-modern mb-4">
+                <div class="card-body p-4 text-center">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-send me-2 text-primary"></i>Submit Your Article</h6>
+                    <p class="small text-muted mb-3">Ready to publish your work in INSTRUCTOR: JCSA? Start your submission now.</p>
+                    {% if user.is_authenticated and user.role == 'author' %}
+                        <a href="{% url 'create_article' %}" class="btn btn-primary rounded-pill px-4">
+                            <i class="bi bi-send me-1"></i>Submit Your Article
+                        </a>
+                    {% elif user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="btn btn-primary rounded-pill px-4">
+                            <i class="bi bi-speedometer2 me-1"></i>Go to Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-primary rounded-pill px-4">
+                            <i class="bi bi-person-plus me-1"></i>Join &amp; Submit Your Article
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>

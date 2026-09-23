@@ -184,3 +184,8 @@ class JournalPageCtaTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Submit Your Article')
 
+    def test_about_page_submit_cta(self):
+        response = self.client.get(reverse('journal_about'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Submit Your Article')
+
