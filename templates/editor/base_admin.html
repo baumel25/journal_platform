@@ -263,9 +263,153 @@
                 padding: 1rem;
             }
         }
+
+        /* ════════════════════════════════════════════════
+           EDITOR PANEL — refreshed theme (2026-09)
+           Scoped to the admin layout so the public site
+           is not affected.
+           ════════════════════════════════════════════════ */
+        body.admin-body { background: #f1f5f9; }
+
+        /* Sidebar */
+        .admin-sidebar { box-shadow: 4px 0 24px rgba(15,23,42,.10); }
+        .admin-sidebar .sidebar-brand a { display: flex; align-items: center; gap: .65rem; text-align: left; line-height: 1.25; font-size: .95rem; }
+        .admin-sidebar .sidebar-brand i { font-size: 1.5rem; color: #8ea2ff; margin: 0; }
+        .admin-sidebar .sidebar-user .role-chip {
+            display: inline-flex; align-items: center; gap: .35rem;
+            margin-top: .55rem; padding: .22rem .65rem;
+            border-radius: 999px; background: rgba(99,102,241,.28);
+            color: #c7d2fe; font-size: .66rem; font-weight: 700;
+            letter-spacing: .6px; text-transform: uppercase;
+        }
+        .admin-sidebar .nav-section-title { color: rgba(148,163,184,.95); font-size: .62rem; letter-spacing: 1.4px; }
+        .admin-sidebar .nav-item { border-radius: 12px; padding: .58rem .8rem; color: #cbd5e1; position: relative; }
+        .admin-sidebar .nav-item i {
+            width: 1.65rem; height: 1.65rem; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; background: rgba(148,163,184,.13); border-radius: 9px;
+            transition: background .2s ease, color .2s ease;
+        }
+        .admin-sidebar .nav-item:hover { background: rgba(148,163,184,.14); color: #fff; }
+        .admin-sidebar .nav-item:hover i { background: rgba(148,163,184,.24); }
+        .admin-sidebar .nav-item.active { background: linear-gradient(90deg, rgba(99,102,241,.38), rgba(99,102,241,.10)); color: #fff; }
+        .admin-sidebar .nav-item.active i { background: #6366f1; color: #fff; }
+        .admin-sidebar .nav-item.active::before {
+            content: ''; position: absolute; left: -0.7rem; top: 22%; bottom: 22%;
+            width: 4px; border-radius: 0 5px 5px 0; background: #818cf8;
+        }
+        .admin-sidebar .nav-item .badge { font-size: .68rem; font-weight: 700; }
+
+        /* Topbar */
+        .admin-topbar { height: 74px; padding: 0 1.75rem; box-shadow: 0 1px 0 rgba(15,23,42,.06); }
+        .admin-topbar .page-title { font-size: 1.28rem; letter-spacing: -.2px; }
+        .topbar-left { display: flex; align-items: center; gap: .9rem; min-width: 0; }
+        .topbar-sub { font-size: .7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .sidebar-toggle {
+            display: none; width: 42px; height: 42px; border-radius: 12px;
+            border: 1px solid #e2e8f0; background: #fff; color: #334155;
+            align-items: center; justify-content: center; font-size: 1.3rem; cursor: pointer;
+        }
+        .admin-topbar .topbar-user { border: 1px solid #e2e8f0; background: #fff; border-radius: 12px; }
+        .admin-topbar .topbar-user:hover { background: #f8fafc; }
+        .admin-backdrop {
+            position: fixed; inset: 0; z-index: 999;
+            background: rgba(15,23,42,.5); backdrop-filter: blur(2px);
+            opacity: 0; pointer-events: none; transition: opacity .25s ease;
+        }
+
+        /* Content rhythm */
+        .admin-content { padding: 1.75rem 2rem 2.5rem; }
+        .admin-content h3 { color: #0f172a; font-weight: 800; font-size: 1.05rem; letter-spacing: -.1px; margin: 1.6rem 0 1rem; }
+        .admin-content h3:first-child { margin-top: 0; }
+
+        /* Tables → modern cards */
+        .admin-content .data-table {
+            background: #fff; border: 1px solid #eef2f7; border-radius: 16px;
+            box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 14px 40px -30px rgba(15,23,42,.45);
+            overflow: hidden; margin-bottom: 1.5rem;
+        }
+        .admin-content .data-table > h3 {
+            margin: 0; padding: 1.05rem 1.4rem; border-bottom: 1px solid #eef2f7;
+            font-size: 1rem; display: flex; align-items: center; gap: .5rem;
+        }
+        .admin-content .data-table table { width: 100%; margin: 0; border-collapse: collapse; }
+        .admin-content .data-table thead th {
+            padding: .8rem 1.4rem; background: #f8fafc; color: #64748b;
+            font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .9px;
+            border-bottom: 1px solid #eef2f7; white-space: nowrap; text-align: left;
+        }
+        .admin-content .data-table tbody td {
+            padding: .95rem 1.4rem; border-bottom: 1px solid #f1f5f9;
+            color: #334155; font-size: .9rem; vertical-align: middle;
+        }
+        .admin-content .data-table tbody tr:last-child td { border-bottom: none; }
+        .admin-content .data-table tbody tr:hover { background: #f8fafc; }
+
+        /* Buttons */
+        .admin-content .btn { border-radius: 10px; font-weight: 600; }
+        .admin-content .action-btn {
+            padding: .42rem .8rem; border-radius: 9px; font-size: .78rem;
+            font-weight: 700; letter-spacing: .2px; border: none;
+            display: inline-flex; align-items: center; gap: .3rem; cursor: pointer; text-decoration: none;
+            transition: all .18s ease;
+        }
+        .admin-content .action-btn.btn-view { background: #eff6ff; color: #1d4ed8; }
+        .admin-content .action-btn.btn-view:hover { background: #1d4ed8; color: #fff; box-shadow: 0 8px 16px -8px rgba(29,78,216,.7); }
+        .admin-content .action-btn.btn-edit { background: #fefce8; color: #a16207; }
+        .admin-content .action-btn.btn-edit:hover { background: #ca8a04; color: #fff; box-shadow: 0 8px 16px -8px rgba(202,138,4,.7); }
+        .admin-content .action-btn.btn-delete { background: #fef2f2; color: #b91c1c; }
+        .admin-content .action-btn.btn-delete:hover { background: #dc2626; color: #fff; box-shadow: 0 8px 16px -8px rgba(220,38,38,.7); }
+
+        /* Stat cards */
+        .admin-content .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+            gap: 1.1rem; margin-bottom: 1.5rem;
+        }
+        .admin-content .stat-card {
+            background: #fff; border: 1px solid #eef2f7; border-radius: 16px;
+            box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 18px 36px -30px rgba(15,23,42,.5);
+            padding: 1.15rem 1.3rem;
+        }
+        .admin-content .stat-card:hover { transform: translateY(-3px); }
+        .admin-content .stat-card .stat-icon { margin-bottom: .8rem; }
+        .admin-content .stat-card h3 {
+            margin: 0 0 .4rem; font-size: .74rem; font-weight: 700;
+            color: #64748b; text-transform: uppercase; letter-spacing: .9px;
+        }
+        .admin-content .stat-card .stat-number {
+            font-size: 1.9rem; font-weight: 800; color: #1e293b;
+            line-height: 1.15; display: flex; align-items: center; gap: .55rem; flex-wrap: wrap;
+        }
+        .admin-content .stat-card .stat-number .btn { font-size: .68rem !important; padding: .3rem .7rem; }
+
+        /* Alerts & messages */
+        .admin-content .alert { border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(15,23,42,.03); }
+
+        /* Mobile: off-canvas sidebar */
+        @media (max-width: 991px) {
+            .sidebar-toggle { display: inline-flex; }
+            .admin-sidebar {
+                width: 268px; transform: translateX(-102%);
+                transition: transform .25s ease; box-shadow: 0 24px 60px rgba(2,6,23,.5);
+            }
+            body.sidebar-open .admin-sidebar { transform: translateX(0); }
+            body.sidebar-open .admin-backdrop { opacity: 1; pointer-events: auto; }
+            .admin-sidebar .sidebar-brand span,
+            .admin-sidebar .sidebar-user h6,
+            .admin-sidebar .nav-item span,
+            .admin-sidebar .nav-section-title { display: block; }
+            .admin-sidebar .sidebar-user .role-chip { display: inline-flex; }
+            .admin-sidebar .sidebar-brand { padding: 1.1rem 1rem; }
+            .admin-sidebar .nav-item { justify-content: flex-start; padding: .58rem .8rem; }
+            .admin-sidebar .nav-item i { font-size: 1rem; }
+            .admin-main { margin-left: 0; }
+            .admin-content { padding: 1.1rem; }
+            .admin-topbar { padding: 0 1rem; height: 66px; }
+            .topbar-sub { display: none; }
+        }
     </style>
 </head>
-<body>
+<body class="admin-body">
     <!-- Sidebar -->
     <div class="admin-sidebar">
         <div class="sidebar-brand">
@@ -283,7 +427,7 @@
                 {% endif %}
             </a>
             <h6>{{ user.username }}</h6>
-            <small>{{ user.get_role_display }}</small>
+            <span class="role-chip"><i class="bi bi-shield-check"></i>{{ user.get_role_display }}</span>
         </div>
         
         <div class="nav-menu">
@@ -336,11 +480,22 @@
             </a>
         </div>
     </div>
+
+    <!-- Backdrop for the mobile sidebar -->
+    <div class="admin-backdrop" id="sidebarBackdrop"></div>
     
     <!-- Main Content -->
     <div class="admin-main">
         <div class="admin-topbar">
-            <h1 class="page-title">{% block page_title %}Admin Dashboard{% endblock %}</h1>
+            <div class="topbar-left">
+                <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div>
+                    <h1 class="page-title">{% block page_title %}Admin Dashboard{% endblock %}</h1>
+                    <div class="topbar-sub">Editorial Panel · Instructor JCSA</div>
+                </div>
+            </div>
             <div class="topbar-right">
                 <a href="{% url 'dashboard' %}" class="topbar-user">
                     <i class="bi bi-house-door"></i>
@@ -367,6 +522,23 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        // Mobile off-canvas sidebar
+        (function () {
+            const toggle = document.getElementById('sidebarToggle');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (toggle) {
+                toggle.addEventListener('click', function () {
+                    document.body.classList.toggle('sidebar-open');
+                });
+            }
+            if (backdrop) {
+                backdrop.addEventListener('click', function () {
+                    document.body.classList.remove('sidebar-open');
+                });
+            }
+        })();
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

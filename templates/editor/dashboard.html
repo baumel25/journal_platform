@@ -5,46 +5,54 @@
 {% block content %}
 <div class="stats-grid">
     <div class="stat-card">
+        <div class="stat-icon" style="background:#eef2ff; color:#4f46e5;"><i class="bi bi-journal-richtext"></i></div>
         <h3>Total Articles</h3>
         <div class="stat-number">{{ total_articles }}</div>
     </div>
     <div class="stat-card">
+        <div class="stat-icon" style="background:#ecfdf5; color:#059669;"><i class="bi bi-check2-circle"></i></div>
         <h3>Published</h3>
         <div class="stat-number">{{ published_articles }}</div>
     </div>
     <div class="stat-card">
+        <div class="stat-icon" style="background:#fff7ed; color:#ea580c;"><i class="bi bi-hourglass-split"></i></div>
         <h3>Pending Review</h3>
         <div class="stat-number">{{ pending_articles }}</div>
     </div>
     <div class="stat-card">
+        <div class="stat-icon" style="background:#eff6ff; color:#2563eb;"><i class="bi bi-search"></i></div>
         <h3>Under Review</h3>
         <div class="stat-number">{{ under_review }}</div>
     </div>
     <div class="stat-card">
+        <div class="stat-icon" style="background:#fdf4ff; color:#a21caf;"><i class="bi bi-people"></i></div>
         <h3>Total Users</h3>
         <div class="stat-number">{{ total_users }}</div>
     </div>
     <div class="stat-card">
+        <div class="stat-icon" style="background:#fefce8; color:#ca8a04;"><i class="bi bi-star"></i></div>
         <h3>Total Reviews</h3>
         <div class="stat-number">{{ total_reviews }}</div>
     </div>
     <div class="stat-card" style="{% if pending_review_approvals %}border-left: 4px solid #f59e0b;{% endif %}">
-        <h3>Pending Approval <span style="font-weight: normal; font-size: 0.8rem;">(Reviews)</span></h3>
+        <div class="stat-icon" style="background:#fffbeb; color:#d97706;"><i class="bi bi-check2-square"></i></div>
+        <h3>Pending Approval <span style="font-weight: normal; font-size: 0.72rem;">(Reviews)</span></h3>
         <div class="stat-number {% if pending_review_approvals %}text-warning{% endif %}">
             {{ pending_review_approvals }}
             {% if pending_review_approvals %}
-                <a href="{% url 'editor_pending_reviews' %}" class="btn btn-sm btn-warning ms-2" style="font-size: 0.7rem; vertical-align: middle;">
+                <a href="{% url 'editor_pending_reviews' %}" class="btn btn-sm btn-warning">
                     <i class="bi bi-arrow-right"></i> Review
                 </a>
             {% endif %}
         </div>
     </div>
     <div class="stat-card" style="{% if pending_payment_requests %}border-left: 4px solid #10b981;{% endif %}">
-        <h3>Payment Requests <span style="font-weight: normal; font-size: 0.8rem;">(Unlock Articles)</span></h3>
+        <div class="stat-icon" style="background:#ecfdf5; color:#059669;"><i class="bi bi-cash-coin"></i></div>
+        <h3>Payment Requests <span style="font-weight: normal; font-size: 0.72rem;">(Unlock)</span></h3>
         <div class="stat-number {% if pending_payment_requests %}text-success{% endif %}">
             {{ pending_payment_requests }}
             {% if pending_payment_requests %}
-                <a href="{% url 'editor_payment_requests' %}" class="btn btn-sm btn-success ms-2" style="font-size: 0.7rem; vertical-align: middle;">
+                <a href="{% url 'editor_payment_requests' %}" class="btn btn-sm btn-success">
                     <i class="bi bi-unlock"></i> Confirm
                 </a>
             {% endif %}
